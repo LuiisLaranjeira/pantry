@@ -25,7 +25,7 @@ import { useExportStock } from '@/features/profile/hooks/useExportStock';
 import { useLeaveHousehold } from '@/features/profile/hooks/useLeaveHousehold';
 import { useMonthlySpending } from '@/features/profile/hooks/useMonthlySpending';
 import { useNotificationsState } from '@/features/profile/hooks/useNotificationsState';
-import { useProfileHousehold } from '@/features/profile/hooks/useProfileHousehold';
+import { useHousehold } from '@/features/household/hooks/useHousehold';
 import { useRecentActivity } from '@/features/profile/hooks/useRecentActivity';
 import { useToggleNotifications } from '@/features/profile/hooks/useToggleNotifications';
 import { useUpdateHouseholdPrefs } from '@/features/profile/hooks/useUpdateHouseholdPrefs';
@@ -37,7 +37,7 @@ export function ProfileScreen() {
   const [countryPickerVisible, setCountryPickerVisible] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
 
-  const household = useProfileHousehold(householdId);
+  const household = useHousehold(householdId);
   const userEmail = useUserEmail();
   const recentActivity = useRecentActivity(householdId);
   const monthlySpending = useMonthlySpending(householdId);

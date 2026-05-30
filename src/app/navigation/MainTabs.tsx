@@ -3,18 +3,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { ProfileScreen } from '@/features/profile/screens/ProfileScreen';
+import { StockScreen } from '@/features/stock/screens/StockScreen';
 
 import type { MainTabsParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
-
-function PantryPlaceholder() {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderText}>Pantry — migrating soon.</Text>
-    </View>
-  );
-}
 
 function ShoppingPlaceholder() {
   return (
@@ -35,7 +28,7 @@ export function MainTabs() {
     >
       <Tab.Screen
         name="Pantry"
-        component={PantryPlaceholder}
+        component={StockScreen}
         options={{
           title: 'Pantry',
           tabBarIcon: ({ color, size }) => (

@@ -2,13 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { householdRepo, type HouseholdPatch } from '@/features/household/api/householdRepo';
-import { profileKeys } from '@/features/profile/api/queryKeys';
-import type { HouseholdInfo } from '@/features/profile/types';
+import { householdKeys } from '@/features/household/api/queryKeys';
+import type { HouseholdWithCount } from '@/features/household/hooks/useHousehold';
 import { STORAGE_KEYS } from '@/shared/lib/storageKeys';
 
 export function useUpdateHouseholdPrefs(householdId: string | null) {
   const queryClient = useQueryClient();
-  const queryKey = profileKeys.household(householdId);
+  const queryKey = householdKeys.detail(householdId);
 
   return useMutation({
     mutationFn: async (patch: HouseholdPatch) => {
@@ -21,9 +21,9 @@ export function useUpdateHouseholdPrefs(householdId: string | null) {
     },
     onMutate: async (patch) => {
       await queryClient.cancelQueries({ queryKey });
-      const previous = queryClient.getQueryData<HouseholdInfo>(queryKey);
+      const previous = queryClient.getQueryData<HouseholdWithCount>(queryKey);
       if (previous) {
-        queryClient.setQueryData<HouseholdInfo>(queryKey, { ...previous, ...patch });
+        queryClient.setQueryData<HouseholdWithCount>(queryKey, { ...previous, ...patch });
       }
       return { previous };
     },

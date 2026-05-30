@@ -10,11 +10,13 @@ export type HouseholdStackParamList = {
 };
 
 export type MainTabsParamList = {
-  Pantry: undefined;
+  Pantry: { searchQuery?: string } | undefined;
   Shopping: undefined;
   Profile: undefined;
 };
 
 export type AppStackParamList = {
   Main: NavigatorScreenParams<MainTabsParamList> | undefined;
+  Scan: { defaultDestination?: 'stock' | 'list'; returnSearch?: boolean } | undefined;
+  ReceiptScan: undefined;
 };
