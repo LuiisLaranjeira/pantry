@@ -126,4 +126,35 @@ export const shoppingRepo = {
       .map((r) => r.product_id)
       .filter((id): id is string => typeof id === 'string');
   },
+
+  async completedLists(
+    householdId: string,
+  ): Promise<{ id: string; total_spent: number | null; completed_at: string | null }[]> {
+    const { data, error } = await supabase
+      .from('shopping_lists')
+      .select('id, completed_at, total_spent')
+      .eq('household_id', householdId)
+      .eq('status', 'completed')
+      .order('completed_at', { ascending: false });
+    if (error) throw mapSupabaseError(error, 'Could not load shopping history.');
+    return data ?? [];
+  },
+
+  async itemsByListIds(listIds: string[]): Promise<
+    {
+      list_id: string;
+      name: string;
+      quantity: number;
+      unit_price: number | null;
+      checked: boolean;
+    }[]
+  > {
+    if (listIds.length === 0) return [];
+    const { data, error } = await supabase
+      .from('shopping_list_items')
+      .select('list_id, name, quantity, unit_price, checked')
+      .in('list_id', listIds);
+    if (error) throw mapSupabaseError(error, 'Could not load list items.');
+    return data ?? [];
+  },
 };
