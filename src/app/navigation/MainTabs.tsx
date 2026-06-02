@@ -1,21 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, Text, View } from 'react-native';
 
 import { ProfileScreen } from '@/features/profile/screens/ProfileScreen';
+import { ShoppingScreen } from '@/features/shopping/screens/ShoppingScreen';
 import { StockScreen } from '@/features/stock/screens/StockScreen';
 
 import type { MainTabsParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
-
-function ShoppingPlaceholder() {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderText}>Shopping — migrating soon.</Text>
-    </View>
-  );
-}
 
 export function MainTabs() {
   return (
@@ -38,7 +30,7 @@ export function MainTabs() {
       />
       <Tab.Screen
         name="Shopping"
-        component={ShoppingPlaceholder}
+        component={ShoppingScreen}
         options={{
           title: 'Shopping',
           tabBarIcon: ({ color, size }) => (
@@ -59,14 +51,3 @@ export function MainTabs() {
     </Tab.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  placeholder: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  placeholderText: { fontSize: 14, color: '#666', textAlign: 'center' },
-});

@@ -129,13 +129,16 @@ export const shoppingRepo = {
 
   async completedLists(
     householdId: string,
+    options?: { limit?: number },
   ): Promise<{ id: string; total_spent: number | null; completed_at: string | null }[]> {
-    const { data, error } = await supabase
+    let query = supabase
       .from('shopping_lists')
       .select('id, completed_at, total_spent')
       .eq('household_id', householdId)
       .eq('status', 'completed')
       .order('completed_at', { ascending: false });
+    if (options?.limit) query = query.limit(options.limit);
+    const { data, error } = await query;
     if (error) throw mapSupabaseError(error, 'Could not load shopping history.');
     return data ?? [];
   },
