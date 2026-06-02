@@ -7,5 +7,5 @@ module.exports = {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'error',
   },
-  ignorePatterns: ['node_modules/', 'dist/', '.expo/', 'supabase/functions/', 'android/', 'ios/'],
+  ignorePatterns: ['node_modules/', 'dist/', '.expo/', 'supabase/', 'android/', 'ios/'],
 };
