@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
 import { ACTION_META } from '@/features/profile/constants';
-import { profileStyles as styles } from '@/features/profile/components/styles';
+import { useProfileStyles } from '@/features/profile/components/styles';
 import type { StockLogRecord } from '@/features/stock/api/stockRepo';
 import { timeAgo } from '@/shared/lib/time';
 
@@ -11,6 +11,7 @@ interface Props {
 }
 
 export function ActivitySection({ log }: Props) {
+  const styles = useProfileStyles();
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Recent Activity</Text>

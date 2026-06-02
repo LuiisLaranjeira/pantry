@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useMemo } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -11,6 +12,7 @@ import {
 
 import { useShoppingItems } from '@/features/shopping/hooks/useShoppingItems';
 import { formatCurrency } from '@/shared/lib/format';
+import { useTheme } from '@/shared/ui';
 
 interface List {
   id: string;
@@ -25,6 +27,8 @@ interface Props {
 
 export function ReceiptModal({ list, onClose }: Props) {
   const items = useShoppingItems(list?.id ?? null);
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <Modal
@@ -48,12 +52,12 @@ export function ReceiptModal({ list, onClose }: Props) {
             )}
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-            <Ionicons name="close" size={22} color="#444" />
+            <Ionicons name="close" size={22} color={colors.text.secondary} />
           </TouchableOpacity>
         </View>
 
         {items.isPending ? (
-          <ActivityIndicator style={styles.loader} color="#2D6A4F" size="large" />
+          <ActivityIndicator style={styles.loader} color={colors.primary.base} size="large" />
         ) : (
           <ScrollView contentContainerStyle={styles.body}>
             {(items.data ?? []).map((item, index) => (
@@ -96,38 +100,40 @@ export function ReceiptModal({ list, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 28,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  title: { fontSize: 22, fontWeight: '700', color: '#1A1A1A' },
-  date: { fontSize: 12, color: '#888', marginTop: 4 },
-  closeBtn: { padding: 6 },
-  loader: { flex: 1 },
-  body: { padding: 20 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
-  info: { flex: 1 },
-  itemName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
-  meta: { fontSize: 12, color: '#888', marginTop: 2 },
-  itemTotal: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
-  divider: { height: 1, backgroundColor: '#F0F0F0' },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 20,
-    marginTop: 8,
-    borderTopWidth: 2,
-    borderTopColor: '#2D6A4F',
-  },
-  totalLabel: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
-  totalAmount: { fontSize: 20, fontWeight: '800', color: '#2D6A4F' },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.bg.default },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 20,
+      paddingTop: 28,
+      backgroundColor: colors.bg.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.subtle,
+    },
+    title: { fontSize: 22, fontWeight: '700', color: colors.text.primary },
+    date: { fontSize: 12, color: colors.text.muted, marginTop: 4 },
+    closeBtn: { padding: 6 },
+    loader: { flex: 1 },
+    body: { padding: 20 },
+    row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
+    info: { flex: 1 },
+    itemName: { fontSize: 15, fontWeight: '600', color: colors.text.primary },
+    meta: { fontSize: 12, color: colors.text.muted, marginTop: 2 },
+    itemTotal: { fontSize: 15, fontWeight: '700', color: colors.text.primary },
+    divider: { height: 1, backgroundColor: colors.border.subtle },
+    totalRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingTop: 20,
+      marginTop: 8,
+      borderTopWidth: 2,
+      borderTopColor: colors.primary.base,
+    },
+    totalLabel: { fontSize: 16, fontWeight: '700', color: colors.text.primary },
+    totalAmount: { fontSize: 20, fontWeight: '800', color: colors.primary.base },
+  });
+}

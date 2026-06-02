@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { useTheme } from '@/shared/ui';
 import type { StockItem } from '@/shared/types/domain';
 
 interface Props {
@@ -22,6 +24,9 @@ export function StockListItem({
   onDelete,
   isDeleting,
 }: Props) {
+  const { colors, elevation } = useTheme();
+  const styles = useMemo(() => makeStyles(colors, elevation), [colors, elevation]);
+
   const isLow = item.quantity <= item.low_stock_threshold;
   const stockStatus = item.quantity === 0 ? 'out' : isLow ? 'low' : 'ok';
 
@@ -54,7 +59,7 @@ export function StockListItem({
 
       {isDeleting ? (
         <TouchableOpacity style={styles.trashBtn} onPress={onDelete}>
-          <Ionicons name="trash-outline" size={20} color="#fff" />
+          <Ionicons name="trash-outline" size={20} color={colors.text.inverse} />
         </TouchableOpacity>
       ) : (
         <View style={styles.controls}>
@@ -71,66 +76,77 @@ export function StockListItem({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginVertical: 6,
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
-  },
-  cardLow: { borderLeftWidth: 3, borderLeftColor: '#F4A261' },
-  cardDeleting: { backgroundColor: '#FDECEA', borderLeftWidth: 3, borderLeftColor: '#E53935' },
-  textDeleting: { color: '#E53935' },
-  trashBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#E53935',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  info: { flex: 1, marginRight: 12 },
-  name: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
-  meta: { fontSize: 12, color: '#888', marginTop: 2 },
-  lowBadge: {
-    marginTop: 4,
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#C05D00',
-    backgroundColor: '#FFF0E0',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  outBadge: {
-    marginTop: 4,
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#C0392B',
-    backgroundColor: '#FDECEA',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  controls: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  btn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E8F5EF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnText: { fontSize: 18, color: '#2D6A4F', fontWeight: '600', lineHeight: 22 },
-  qty: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', minWidth: 24, textAlign: 'center' },
-});
+function makeStyles(
+  colors: ReturnType<typeof useTheme>['colors'],
+  elevation: ReturnType<typeof useTheme>['elevation'],
+) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: colors.bg.surface,
+      marginHorizontal: 16,
+      marginVertical: 6,
+      borderRadius: 12,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      ...elevation.card,
+    },
+    cardLow: { borderLeftWidth: 3, borderLeftColor: colors.warning.base },
+    cardDeleting: {
+      backgroundColor: colors.danger.soft,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.danger.base,
+    },
+    textDeleting: { color: colors.danger.base },
+    trashBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.danger.base,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    info: { flex: 1, marginRight: 12 },
+    name: { fontSize: 15, fontWeight: '600', color: colors.text.primary },
+    meta: { fontSize: 12, color: colors.text.muted, marginTop: 2 },
+    lowBadge: {
+      marginTop: 4,
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.warning.text,
+      backgroundColor: colors.warning.soft,
+      alignSelf: 'flex-start',
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 4,
+    },
+    outBadge: {
+      marginTop: 4,
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.danger.text,
+      backgroundColor: colors.danger.soft,
+      alignSelf: 'flex-start',
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 4,
+    },
+    controls: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    btn: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.primary.soft,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    btnText: { fontSize: 18, color: colors.primary.base, fontWeight: '600', lineHeight: 22 },
+    qty: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text.primary,
+      minWidth: 24,
+      textAlign: 'center',
+    },
+  });
+}

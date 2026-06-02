@@ -32,6 +32,7 @@ import { useDeleteStockItem } from '@/features/stock/hooks/useDeleteStockItem';
 import { useStockList } from '@/features/stock/hooks/useStockList';
 import { ProductConfirmSheet, type Destination } from '@/shared/components/ProductConfirmSheet';
 import { isAppError } from '@/shared/api/errors';
+import { Button, EmptyState, useTheme } from '@/shared/ui';
 import type { GroupedStockItem, PartialProduct, StockItem } from '@/shared/types/domain';
 
 type Props = CompositeScreenProps<
@@ -51,6 +52,8 @@ const EMPTY_PRODUCT: PartialProduct = {
 
 export function StockScreen({ navigation, route }: Props) {
   const { householdId } = useAppState();
+  const { colors, elevation } = useTheme();
+  const styles = useMemo(() => makeStyles(colors, elevation), [colors, elevation]);
   const [search, setSearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
@@ -193,7 +196,7 @@ export function StockScreen({ navigation, route }: Props) {
   };
 
   if (loading) {
-    return <ActivityIndicator style={styles.loader} color="#2D6A4F" size="large" />;
+    return <ActivityIndicator style={styles.loader} color={colors.primary.base} size="large" />;
   }
 
   const query = search.trim().toLowerCase();
@@ -219,7 +222,7 @@ export function StockScreen({ navigation, route }: Props) {
           value={search}
           onChangeText={setSearch}
           placeholder="Search pantry…"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.text.placeholder}
           clearButtonMode="while-editing"
           returnKeyType="search"
         />
@@ -227,7 +230,7 @@ export function StockScreen({ navigation, route }: Props) {
           style={styles.barcodeBtn}
           onPress={() => navigation.navigate('Scan', { returnSearch: true })}
         >
-          <Ionicons name="barcode-outline" size={26} color="#2D6A4F" />
+          <Ionicons name="barcode-outline" size={26} color={colors.primary.base} />
         </TouchableOpacity>
       </View>
       {activeLowCount > 0 && !bannerDismissed && (
@@ -237,12 +240,16 @@ export function StockScreen({ navigation, route }: Props) {
           disabled={addLowToList.isPending}
           activeOpacity={0.8}
         >
-          <Ionicons name="cart-outline" size={18} color="#fff" />
+          <Ionicons name="cart-outline" size={18} color={colors.text.inverse} />
           <Text style={styles.bannerText}>
             {activeLowCount} item{activeLowCount > 1 ? 's' : ''} low — add to shopping list
           </Text>
           {addLowToList.isPending ? (
-            <ActivityIndicator size="small" color="#fff" style={styles.bannerTrailing} />
+            <ActivityIndicator
+              size="small"
+              color={colors.text.inverse}
+              style={styles.bannerTrailing}
+            />
           ) : (
             <Ionicons
               name="chevron-forward"
@@ -300,12 +307,10 @@ export function StockScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           )}
           ListEmptyComponent={
-            <View>
-              <Text style={styles.emptyTitle}>{query ? 'No results' : 'Pantry is empty'}</Text>
-              <Text style={styles.emptySubtitle}>
-                {query ? `Nothing matches "${search}".` : 'Scan a barcode or add manually.'}
-              </Text>
-            </View>
+            <EmptyState
+              title={query ? 'No results' : 'Pantry is empty'}
+              subtitle={query ? `Nothing matches "${search}".` : 'Scan a barcode or add manually.'}
+            />
           }
         />
       ) : (
@@ -325,23 +330,17 @@ export function StockScreen({ navigation, route }: Props) {
             />
           )}
           ListEmptyComponent={
-            <View>
-              <Text style={styles.emptyTitle}>{query ? 'No results' : 'Pantry is empty'}</Text>
-              <Text style={styles.emptySubtitle}>
-                {query ? `Nothing matches "${search}".` : 'Scan a barcode or add manually.'}
-              </Text>
-            </View>
+            <EmptyState
+              title={query ? 'No results' : 'Pantry is empty'}
+              subtitle={query ? `Nothing matches "${search}".` : 'Scan a barcode or add manually.'}
+            />
           }
         />
       )}
 
       <View style={styles.fabRow}>
-        <TouchableOpacity style={styles.fabSecondary} onPress={() => setShowManual(true)}>
-          <Text style={styles.fabSecondaryText}>+ Manual</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('Scan')}>
-          <Text style={styles.fabText}>Scan</Text>
-        </TouchableOpacity>
+        <Button label="+ Manual" variant="secondary" onPress={() => setShowManual(true)} />
+        <Button label="Scan" onPress={() => navigation.navigate('Scan')} />
       </View>
 
       <ProductConfirmSheet
@@ -354,118 +353,103 @@ export function StockScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
-  searchBar: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  searchInput: {
-    flex: 1,
-    backgroundColor: '#F0F2F5',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    fontSize: 15,
-    color: '#111',
-  },
-  barcodeBtn: { padding: 4 },
-  loader: { flex: 1 },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#444', textAlign: 'center' },
-  emptySubtitle: { fontSize: 14, color: '#888', textAlign: 'center', marginTop: 6 },
-  fabRow: {
-    position: 'absolute',
-    bottom: 28,
-    right: 24,
-    flexDirection: 'row',
-    gap: 12,
-    alignItems: 'center',
-  },
-  fab: {
-    backgroundColor: '#2D6A4F',
-    borderRadius: 28,
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  fabText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  fabSecondary: {
-    backgroundColor: '#fff',
-    borderRadius: 28,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderWidth: 1.5,
-    borderColor: '#2D6A4F',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  fabSecondaryText: { color: '#2D6A4F', fontSize: 15, fontWeight: '700' },
-  banner: {
-    backgroundColor: '#2D6A4F',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  bannerText: { color: '#fff', fontSize: 14, fontWeight: '600', flex: 1 },
-  bannerTrailing: { marginLeft: 'auto' },
-  bannerClose: { padding: 2, marginLeft: 8 },
-  groupCard: {
-    backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginVertical: 5,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
-  },
-  groupInfo: { flex: 1 },
-  groupName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
-  groupMeta: { fontSize: 12, color: '#888', marginTop: 2 },
-  lowBadge: {
-    backgroundColor: '#FFF3CD',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    marginRight: 10,
-  },
-  lowBadgeText: { fontSize: 11, fontWeight: '700', color: '#856404' },
-  qtyControls: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  qtyBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E8F5EF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qtyBtnText: { fontSize: 20, color: '#2D6A4F', fontWeight: '600', lineHeight: 24 },
-  qtyValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    minWidth: 24,
-    textAlign: 'center',
-  },
-});
+function makeStyles(
+  colors: ReturnType<typeof useTheme>['colors'],
+  elevation: ReturnType<typeof useTheme>['elevation'],
+) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.bg.default },
+    searchBar: {
+      backgroundColor: colors.bg.surface,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.subtle,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    searchInput: {
+      flex: 1,
+      backgroundColor: colors.bg.default,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      fontSize: 15,
+      color: colors.text.primary,
+    },
+    barcodeBtn: { padding: 4 },
+    loader: { flex: 1 },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text.secondary,
+      textAlign: 'center',
+    },
+    emptySubtitle: {
+      fontSize: 14,
+      color: colors.text.muted,
+      textAlign: 'center',
+      marginTop: 6,
+    },
+    fabRow: {
+      position: 'absolute',
+      bottom: 28,
+      right: 24,
+      flexDirection: 'row',
+      gap: 12,
+      alignItems: 'center',
+    },
+    banner: {
+      backgroundColor: colors.primary.base,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 8,
+    },
+    bannerText: { color: colors.text.inverse, fontSize: 14, fontWeight: '600', flex: 1 },
+    bannerTrailing: { marginLeft: 'auto' },
+    bannerClose: { padding: 2, marginLeft: 8 },
+    groupCard: {
+      backgroundColor: colors.bg.surface,
+      marginHorizontal: 16,
+      marginVertical: 5,
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      ...elevation.card,
+    },
+    groupInfo: { flex: 1 },
+    groupName: { fontSize: 15, fontWeight: '600', color: colors.text.primary },
+    groupMeta: { fontSize: 12, color: colors.text.muted, marginTop: 2 },
+    lowBadge: {
+      backgroundColor: colors.warning.soft,
+      borderRadius: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      marginRight: 10,
+    },
+    lowBadgeText: { fontSize: 11, fontWeight: '700', color: colors.warning.text },
+    qtyControls: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    qtyBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.primary.soft,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    qtyBtnText: { fontSize: 20, color: colors.primary.base, fontWeight: '600', lineHeight: 24 },
+    qtyValue: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text.primary,
+      minWidth: 24,
+      textAlign: 'center',
+    },
+  });
+}

@@ -5,7 +5,6 @@ import {
   Platform,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -13,6 +12,7 @@ import {
 import { useCreateHousehold } from '@/features/household/hooks/useCreateHousehold';
 import { useJoinHousehold } from '@/features/household/hooks/useJoinHousehold';
 import { isAppError } from '@/shared/api/errors';
+import { Button, TextField, useTheme } from '@/shared/ui';
 
 type Mode = 'choose' | 'create' | 'join';
 
@@ -20,6 +20,7 @@ export function HouseholdScreen() {
   const [mode, setMode] = useState<Mode>('choose');
   const [householdName, setHouseholdName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
+  const { colors, typography } = useTheme();
 
   const createMutation = useCreateHousehold();
   const joinMutation = useJoinHousehold();
@@ -61,70 +62,102 @@ export function HouseholdScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.bg.default }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.inner}>
         {mode === 'choose' && (
           <>
-            <Text style={styles.title}>Set up your household</Text>
-            <Text style={styles.subtitle}>
+            <Text
+              style={[
+                styles.title,
+                { color: colors.primary.base, fontWeight: typography.weight.bold },
+              ]}
+            >
+              Set up your household
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.text.subtle }]}>
               Create a new household or join an existing one with an invite code.
             </Text>
-            <TouchableOpacity style={styles.button} onPress={() => setMode('create')}>
-              <Text style={styles.buttonText}>Create household</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.buttonSecondary} onPress={() => setMode('join')}>
-              <Text style={styles.buttonSecondaryText}>Join with invite code</Text>
-            </TouchableOpacity>
+            <Button
+              label="Create household"
+              onPress={() => setMode('create')}
+              size="lg"
+              fullWidth
+              style={styles.button}
+            />
+            <Button
+              label="Join with invite code"
+              onPress={() => setMode('join')}
+              variant="secondary"
+              size="lg"
+              fullWidth
+              style={styles.button}
+            />
           </>
         )}
 
         {mode === 'create' && (
           <>
-            <Text style={styles.title}>Name your household</Text>
-            <TextInput
-              style={styles.input}
+            <Text
+              style={[
+                styles.title,
+                { color: colors.primary.base, fontWeight: typography.weight.bold },
+              ]}
+            >
+              Name your household
+            </Text>
+            <TextField
+              containerStyle={styles.field}
               placeholder="e.g. The Smiths"
               value={householdName}
               onChangeText={setHouseholdName}
-              placeholderTextColor="#999"
               editable={!isCreating}
             />
-            <TouchableOpacity
-              style={[styles.button, isCreating && styles.disabled]}
+            <Button
+              label="Create"
               onPress={handleCreate}
-              disabled={isCreating}
-            >
-              <Text style={styles.buttonText}>{isCreating ? 'Creating…' : 'Create'}</Text>
-            </TouchableOpacity>
+              loading={isCreating}
+              disabled={!householdName.trim()}
+              size="lg"
+              fullWidth
+              style={styles.button}
+            />
             <TouchableOpacity style={styles.link} onPress={() => setMode('choose')}>
-              <Text style={styles.linkText}>Back</Text>
+              <Text style={[styles.linkText, { color: colors.primary.base }]}>Back</Text>
             </TouchableOpacity>
           </>
         )}
 
         {mode === 'join' && (
           <>
-            <Text style={styles.title}>Enter invite code</Text>
-            <TextInput
-              style={styles.input}
+            <Text
+              style={[
+                styles.title,
+                { color: colors.primary.base, fontWeight: typography.weight.bold },
+              ]}
+            >
+              Enter invite code
+            </Text>
+            <TextField
+              containerStyle={styles.field}
               placeholder="6-character code"
               value={inviteCode}
               onChangeText={setInviteCode}
               autoCapitalize="none"
-              placeholderTextColor="#999"
               editable={!isJoining}
             />
-            <TouchableOpacity
-              style={[styles.button, isJoining && styles.disabled]}
+            <Button
+              label="Join"
               onPress={handleJoin}
-              disabled={isJoining}
-            >
-              <Text style={styles.buttonText}>{isJoining ? 'Joining…' : 'Join'}</Text>
-            </TouchableOpacity>
+              loading={isJoining}
+              disabled={!inviteCode.trim()}
+              size="lg"
+              fullWidth
+              style={styles.button}
+            />
             <TouchableOpacity style={styles.link} onPress={() => setMode('choose')}>
-              <Text style={styles.linkText}>Back</Text>
+              <Text style={[styles.linkText, { color: colors.primary.base }]}>Back</Text>
             </TouchableOpacity>
           </>
         )}
@@ -134,37 +167,12 @@ export function HouseholdScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
+  container: { flex: 1 },
   inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
-  title: { fontSize: 26, fontWeight: '700', color: '#2D6A4F', marginBottom: 12 },
-  subtitle: { fontSize: 14, color: '#666', marginBottom: 32, lineHeight: 20 },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
-    fontSize: 16,
-    color: '#111',
-  },
-  button: {
-    backgroundColor: '#2D6A4F',
-    borderRadius: 10,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  buttonSecondary: {
-    borderWidth: 1.5,
-    borderColor: '#2D6A4F',
-    borderRadius: 10,
-    padding: 16,
-    alignItems: 'center',
-  },
-  buttonSecondaryText: { color: '#2D6A4F', fontSize: 16, fontWeight: '600' },
-  disabled: { opacity: 0.6 },
+  title: { fontSize: 26, marginBottom: 12 },
+  subtitle: { fontSize: 14, marginBottom: 32, lineHeight: 20 },
+  field: { marginBottom: 12 },
+  button: { marginBottom: 12 },
   link: { marginTop: 16, alignItems: 'center' },
-  linkText: { color: '#2D6A4F', fontSize: 14 },
+  linkText: { fontSize: 14 },
 });

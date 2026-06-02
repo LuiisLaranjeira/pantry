@@ -1,15 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
-import { profileStyles } from '@/features/profile/components/styles';
+import { useProfileStyles } from '@/features/profile/components/styles';
 import type { MonthData } from '@/features/profile/types';
 import { formatCurrency } from '@/shared/lib/format';
+import { useTheme } from '@/shared/ui';
 
 interface Props {
   monthlyData: MonthData[];
 }
 
 export function SpendingSection({ monthlyData }: Props) {
+  const profileStyles = useProfileStyles();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { width } = useWindowDimensions();
   const barMaxWidth = width - 40 - 16 * 2 - 72 - 56;
   if (monthlyData.length < 12) return null;
@@ -94,7 +99,7 @@ export function SpendingSection({ monthlyData }: Props) {
                   <Ionicons
                     name="cart-outline"
                     size={20}
-                    color="#2D6A4F"
+                    color={colors.primary.base}
                     style={profileStyles.rowIcon}
                   />
                   <View style={profileStyles.rowBody}>
@@ -119,24 +124,36 @@ export function SpendingSection({ monthlyData }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  statsRow: { flexDirection: 'row', paddingVertical: 16, paddingHorizontal: 12 },
-  statCell: { flex: 1, alignItems: 'center' },
-  statDivider: { width: 1, backgroundColor: '#F0F0F0' },
-  statLabel: { fontSize: 11, color: '#888', fontWeight: '500', marginBottom: 4 },
-  statValue: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
-  statTrend: { fontSize: 11, fontWeight: '600', marginTop: 3 },
-  trendUp: { color: '#E53935' },
-  trendDown: { color: '#2D6A4F' },
-  chartContainer: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
-  chartRow: { flexDirection: 'row', alignItems: 'center', height: 22 },
-  chartLabel: { width: 32, fontSize: 11, color: '#888', fontWeight: '400' },
-  chartLabelBold: { fontWeight: '700', color: '#1A1A1A' },
-  chartBarTrack: { flex: 1, marginHorizontal: 8 },
-  chartBar: { height: 10, borderRadius: 5, backgroundColor: '#A8D5BF' },
-  chartBarCurrent: { backgroundColor: '#2D6A4F' },
-  chartBarEmpty: { backgroundColor: '#F0F0F0', width: 2 },
-  chartAmount: { width: 56, fontSize: 11, color: '#888', textAlign: 'right' },
-  spendingEmpty: { padding: 20 },
-  spendingEmptyText: { fontSize: 13, color: '#888', textAlign: 'center', lineHeight: 18 },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    statsRow: { flexDirection: 'row', paddingVertical: 16, paddingHorizontal: 12 },
+    statCell: { flex: 1, alignItems: 'center' },
+    statDivider: { width: 1, backgroundColor: colors.border.subtle },
+    statLabel: {
+      fontSize: 11,
+      color: colors.text.muted,
+      fontWeight: '500',
+      marginBottom: 4,
+    },
+    statValue: { fontSize: 18, fontWeight: '700', color: colors.text.primary },
+    statTrend: { fontSize: 11, fontWeight: '600', marginTop: 3 },
+    trendUp: { color: colors.danger.base },
+    trendDown: { color: colors.primary.base },
+    chartContainer: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+    chartRow: { flexDirection: 'row', alignItems: 'center', height: 22 },
+    chartLabel: { width: 32, fontSize: 11, color: colors.text.muted, fontWeight: '400' },
+    chartLabelBold: { fontWeight: '700', color: colors.text.primary },
+    chartBarTrack: { flex: 1, marginHorizontal: 8 },
+    chartBar: { height: 10, borderRadius: 5, backgroundColor: colors.primary.muted },
+    chartBarCurrent: { backgroundColor: colors.primary.base },
+    chartBarEmpty: { backgroundColor: colors.border.subtle, width: 2 },
+    chartAmount: { width: 56, fontSize: 11, color: colors.text.muted, textAlign: 'right' },
+    spendingEmpty: { padding: 20 },
+    spendingEmptyText: {
+      fontSize: 13,
+      color: colors.text.muted,
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+  });
+}

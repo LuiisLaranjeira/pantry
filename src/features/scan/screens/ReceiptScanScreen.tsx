@@ -25,12 +25,15 @@ import { useParseReceipt } from '@/features/scan/hooks/useParseReceipt';
 import { useAddItemsToList } from '@/features/shopping/hooks/useAddItemsToList';
 import { isAppError } from '@/shared/api/errors';
 import { uuid } from '@/shared/lib/uuid';
+import { Button, useTheme } from '@/shared/ui';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'ReceiptScan'>;
 type Mode = 'capture' | 'loading' | 'review';
 
 export function ReceiptScanScreen({ navigation }: Props) {
   const { householdId } = useAppState();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [permission, requestPermission] = useCameraPermissions();
   const [mode, setMode] = useState<Mode>('capture');
   const [loadingMessage, setLoadingMessage] = useState('Reading receipt…');
@@ -134,7 +137,7 @@ export function ReceiptScanScreen({ navigation }: Props) {
   if (!permission) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#2D6A4F" />
+        <ActivityIndicator color={colors.primary.base} />
       </View>
     );
   }
@@ -143,9 +146,7 @@ export function ReceiptScanScreen({ navigation }: Props) {
     return (
       <View style={styles.center}>
         <Text style={styles.permText}>Camera access is required to scan receipts.</Text>
-        <TouchableOpacity style={styles.permBtn} onPress={requestPermission}>
-          <Text style={styles.permBtnText}>Grant access</Text>
-        </TouchableOpacity>
+        <Button label="Grant access" onPress={requestPermission} />
       </View>
     );
   }
@@ -160,7 +161,7 @@ export function ReceiptScanScreen({ navigation }: Props) {
       >
         {storeName && (
           <View style={styles.storeBar}>
-            <Ionicons name="storefront-outline" size={16} color="#2D6A4F" />
+            <Ionicons name="storefront-outline" size={16} color={colors.primary.base} />
             <Text style={styles.storeLabel}>{storeName}</Text>
           </View>
         )}
@@ -176,25 +177,14 @@ export function ReceiptScanScreen({ navigation }: Props) {
         />
 
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.retakeBtn} onPress={() => setMode('capture')}>
-            <Text style={styles.retakeBtnText}>Retake</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.confirmBtn,
-              (saving || selectedCount === 0) && styles.confirmBtnDisabled,
-            ]}
+          <Button label="Retake" variant="secondary" onPress={() => setMode('capture')} />
+          <Button
+            label={`Add ${selectedCount} item${selectedCount !== 1 ? 's' : ''}`}
             onPress={confirm}
-            disabled={saving || selectedCount === 0}
-          >
-            {saving ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.confirmBtnText}>
-                Add {selectedCount} item{selectedCount !== 1 ? 's' : ''}
-              </Text>
-            )}
-          </TouchableOpacity>
+            loading={saving}
+            disabled={selectedCount === 0}
+            style={styles.confirmBtnGrow}
+          />
         </View>
       </KeyboardAvoidingView>
     );
@@ -221,7 +211,7 @@ export function ReceiptScanScreen({ navigation }: Props) {
 
       {mode === 'loading' && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator color="#fff" size="large" />
+          <ActivityIndicator color={colors.text.inverse} size="large" />
           <Text style={styles.loadingText}>{loadingMessage}</Text>
         </View>
       )}
@@ -229,110 +219,93 @@ export function ReceiptScanScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  reviewBg: { backgroundColor: '#F8F9FA' },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: '#F8F9FA',
-  },
-  permText: { fontSize: 15, color: '#444', textAlign: 'center', marginBottom: 20 },
-  permBtn: {
-    backgroundColor: '#2D6A4F',
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  permBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
-  camera: { flex: 1 },
-  shutterFlash: { ...StyleSheet.absoluteFillObject, backgroundColor: '#fff', zIndex: 10 },
-  captureOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingBottom: 56,
-  },
-  receiptGuide: {
-    position: 'absolute',
-    top: '12%',
-    left: 20,
-    right: 20,
-    bottom: '18%',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.65)',
-    borderRadius: 8,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingBottom: 12,
-  },
-  guideText: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 13,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  shutterBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    borderWidth: 3,
-    borderColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  shutterInner: { width: 54, height: 54, borderRadius: 27, backgroundColor: '#fff' },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  loadingText: { color: '#fff', fontSize: 16 },
-  storeBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: '#E8F5EF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#C8E6C9',
-  },
-  storeLabel: { fontSize: 14, fontWeight: '600', color: '#2D6A4F' },
-  reviewList: { padding: 12, paddingBottom: 24, gap: 8 },
-  footer: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 16,
-    paddingBottom: 28,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-  },
-  retakeBtn: {
-    borderWidth: 1.5,
-    borderColor: '#2D6A4F',
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-  },
-  retakeBtnText: { color: '#2D6A4F', fontSize: 15, fontWeight: '600' },
-  confirmBtn: {
-    flex: 1,
-    backgroundColor: '#2D6A4F',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  confirmBtnDisabled: { backgroundColor: '#A8D5BF' },
-  confirmBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: '#000' },
+    reviewBg: { backgroundColor: colors.bg.default },
+    center: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+      backgroundColor: colors.bg.default,
+    },
+    permText: {
+      fontSize: 15,
+      color: colors.text.secondary,
+      textAlign: 'center',
+      marginBottom: 20,
+    },
+    camera: { flex: 1 },
+    shutterFlash: { ...StyleSheet.absoluteFillObject, backgroundColor: '#fff', zIndex: 10 },
+    captureOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      paddingBottom: 56,
+    },
+    receiptGuide: {
+      position: 'absolute',
+      top: '12%',
+      left: 20,
+      right: 20,
+      bottom: '18%',
+      borderWidth: 2,
+      borderColor: 'rgba(255,255,255,0.65)',
+      borderRadius: 8,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      paddingBottom: 12,
+    },
+    guideText: {
+      color: 'rgba(255,255,255,0.85)',
+      fontSize: 13,
+      backgroundColor: 'rgba(0,0,0,0.45)',
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+      overflow: 'hidden',
+    },
+    shutterBtn: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: 'rgba(255,255,255,0.25)',
+      borderWidth: 3,
+      borderColor: '#fff',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    shutterInner: { width: 54, height: 54, borderRadius: 27, backgroundColor: '#fff' },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.65)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 16,
+    },
+    loadingText: { color: '#fff', fontSize: 16 },
+    storeBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      backgroundColor: colors.primary.soft,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.subtle,
+    },
+    storeLabel: { fontSize: 14, fontWeight: '600', color: colors.primary.base },
+    reviewList: { padding: 12, paddingBottom: 24, gap: 8 },
+    footer: {
+      flexDirection: 'row',
+      gap: 12,
+      padding: 16,
+      paddingBottom: 28,
+      backgroundColor: colors.bg.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.subtle,
+    },
+    confirmBtnGrow: { flex: 1 },
+  });
+}

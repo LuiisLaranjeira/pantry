@@ -31,6 +31,7 @@ import { useUpdateShoppingItem } from '@/features/shopping/hooks/useUpdateShoppi
 import { isAppError } from '@/shared/api/errors';
 import { ProductConfirmSheet, type Destination } from '@/shared/components/ProductConfirmSheet';
 import { formatCurrency } from '@/shared/lib/format';
+import { Button, EmptyState, IconButton, useTheme } from '@/shared/ui';
 import type { PartialProduct, ShoppingListItem } from '@/shared/types/domain';
 
 type Props = CompositeScreenProps<
@@ -50,6 +51,8 @@ const EMPTY_PRODUCT: PartialProduct = {
 
 export function ShoppingScreen({ navigation }: Props) {
   const { householdId } = useAppState();
+  const { colors, elevation } = useTheme();
+  const styles = useMemo(() => makeStyles(colors, elevation), [colors, elevation]);
   const [showAdd, setShowAdd] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<HistoryRow | null>(null);
@@ -191,21 +194,19 @@ export function ShoppingScreen({ navigation }: Props) {
   };
 
   if (activeList.isPending || history.isPending) {
-    return <ActivityIndicator style={styles.loader} color="#2D6A4F" size="large" />;
+    return <ActivityIndicator style={styles.loader} color={colors.primary.base} size="large" />;
   }
 
   if (!activeList.data) {
     return (
       <View style={styles.container}>
-        <TouchableOpacity
-          style={[styles.startBtn, startList.isPending && styles.disabled]}
+        <Button
+          label={startList.isPending ? 'Starting…' : 'Start shopping list'}
           onPress={handleStartList}
-          disabled={startList.isPending}
-        >
-          <Text style={styles.startBtnText}>
-            {startList.isPending ? 'Starting…' : 'Start shopping list'}
-          </Text>
-        </TouchableOpacity>
+          loading={startList.isPending}
+          size="lg"
+          style={styles.startBtn}
+        />
 
         {(history.data?.length ?? 0) > 0 && (
           <>
@@ -231,7 +232,7 @@ export function ShoppingScreen({ navigation }: Props) {
                     {list.total_spent != null && (
                       <Text style={styles.historyTotal}>{formatCurrency(list.total_spent)}</Text>
                     )}
-                    <Ionicons name="chevron-forward" size={16} color="#CCC" />
+                    <Ionicons name="chevron-forward" size={16} color={colors.border.strong} />
                   </View>
                 </TouchableOpacity>
               )}
@@ -247,27 +248,33 @@ export function ShoppingScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.headerBar}>
-        <TouchableOpacity onPress={handleDeleteList} style={styles.headerSideBtn}>
-          <Ionicons name="trash-outline" size={20} color="#C0392B" />
-        </TouchableOpacity>
+        <IconButton
+          icon="trash-outline"
+          size={20}
+          color={colors.danger.text}
+          accessibilityLabel="Delete list"
+          onPress={handleDeleteList}
+        />
         <Text style={styles.headerTitle}>Shopping</Text>
         <View style={styles.headerRightRow}>
-          <TouchableOpacity
+          <IconButton
+            icon="receipt-outline"
+            size={22}
+            color={colors.primary.base}
+            accessibilityLabel="Scan receipt"
             onPress={() => navigation.navigate('ReceiptScan')}
-            style={styles.headerSideBtn}
-          >
-            <Ionicons name="receipt-outline" size={22} color="#2D6A4F" />
-          </TouchableOpacity>
+          />
           <TouchableOpacity
             onPress={handleConfirmPurchase}
             disabled={checkedCount === 0 || confirmPurchase.isPending}
+            accessibilityLabel="Confirm purchase"
             style={[
               styles.headerConfirmBtn,
               (checkedCount === 0 || confirmPurchase.isPending) && styles.disabled,
             ]}
           >
             {confirmPurchase.isPending ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.text.inverse} />
             ) : (
               <Text style={styles.headerConfirmText}>✓</Text>
             )}
@@ -296,24 +303,22 @@ export function ShoppingScreen({ navigation }: Props) {
             onDelete={() => handleDelete(item)}
           />
         )}
-        ListEmptyComponent={
-          <View>
-            <Text style={styles.emptyTitle}>List is empty</Text>
-            <Text style={styles.emptySubtitle}>Tap + to add items.</Text>
-          </View>
-        }
+        ListEmptyComponent={<EmptyState title="List is empty" subtitle="Tap + to add items." />}
       />
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.listBtn} onPress={() => setShowAdd(true)}>
-          <Text style={styles.listBtnText}>+ Add item</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.listBtn}
+        <Button
+          label="+ Add item"
+          onPress={() => setShowAdd(true)}
+          fullWidth
+          style={styles.bottomBtn}
+        />
+        <Button
+          label="Scan"
           onPress={() => navigation.navigate('Scan', { defaultDestination: 'list' })}
-        >
-          <Text style={styles.listBtnText}>Scan</Text>
-        </TouchableOpacity>
+          fullWidth
+          style={styles.bottomBtn}
+        />
       </View>
 
       <ProductConfirmSheet
@@ -337,96 +342,86 @@ export function ShoppingScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  loader: { flex: 1 },
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  headerSideBtn: { padding: 6 },
-  headerTitle: { flex: 1, marginLeft: 8, fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
-  headerRightRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  headerConfirmBtn: {
-    backgroundColor: '#2D6A4F',
-    borderRadius: 10,
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerConfirmText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  disabled: { opacity: 0.45 },
-  totalBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#2D6A4F',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  totalLabel: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  totalAmount: { color: '#fff', fontSize: 18, fontWeight: '800' },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#444', textAlign: 'center' },
-  emptySubtitle: { fontSize: 14, color: '#888', textAlign: 'center', marginTop: 6 },
-  bottomBar: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-  },
-  listBtn: {
-    flex: 1,
-    backgroundColor: '#2D6A4F',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  listBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  startBtn: {
-    margin: 20,
-    backgroundColor: '#2D6A4F',
-    borderRadius: 12,
-    paddingVertical: 18,
-    alignItems: 'center',
-  },
-  startBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  historyTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#888',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginHorizontal: 24,
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  historyCard: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginVertical: 5,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
-  },
-  historyDate: { fontSize: 14, fontWeight: '500', color: '#1A1A1A' },
-  historyRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  historyTotal: { fontSize: 14, fontWeight: '700', color: '#2D6A4F' },
-});
+function makeStyles(
+  colors: ReturnType<typeof useTheme>['colors'],
+  elevation: ReturnType<typeof useTheme>['elevation'],
+) {
+  return StyleSheet.create({
+    loader: { flex: 1 },
+    container: { flex: 1, backgroundColor: colors.bg.default },
+    headerBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.bg.surface,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.subtle,
+    },
+    headerTitle: {
+      flex: 1,
+      marginLeft: 8,
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text.primary,
+    },
+    headerRightRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    headerConfirmBtn: {
+      backgroundColor: colors.primary.base,
+      borderRadius: 10,
+      width: 36,
+      height: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerConfirmText: { color: colors.text.inverse, fontSize: 18, fontWeight: '700' },
+    disabled: { opacity: 0.45 },
+    totalBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: colors.primary.base,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+    },
+    totalLabel: { color: colors.text.inverse, fontSize: 14, fontWeight: '600' },
+    totalAmount: { color: colors.text.inverse, fontSize: 18, fontWeight: '800' },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    bottomBar: {
+      flexDirection: 'row',
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.bg.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.subtle,
+    },
+    bottomBtn: { flex: 1 },
+    startBtn: { margin: 20 },
+    historyTitle: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.text.muted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+      marginHorizontal: 24,
+      marginTop: 8,
+      marginBottom: 8,
+    },
+    historyCard: {
+      backgroundColor: colors.bg.surface,
+      marginHorizontal: 20,
+      marginVertical: 5,
+      borderRadius: 10,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      ...elevation.card,
+    },
+    historyDate: { fontSize: 14, fontWeight: '500', color: colors.text.primary },
+    historyRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    historyTotal: { fontSize: 14, fontWeight: '700', color: colors.primary.base },
+  });
+}

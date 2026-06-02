@@ -20,6 +20,7 @@ import { useAddStockFromManual } from '@/features/stock/hooks/useAddStockFromMan
 import { isAppError } from '@/shared/api/errors';
 import { ProductConfirmSheet, type Destination } from '@/shared/components/ProductConfirmSheet';
 import { manualBarcode } from '@/shared/lib/uuid';
+import { Button, useTheme } from '@/shared/ui';
 import type { PartialProduct } from '@/shared/types/domain';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Scan'>;
@@ -32,6 +33,8 @@ export function ScanScreen({ navigation, route }: Props) {
   const returnSearch = route.params?.returnSearch ?? false;
 
   const { householdId } = useAppState();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [permission, requestPermission] = useCameraPermissions();
   const [mode, setMode] = useState<ScanMode>('scanning');
   const [loadingMessage, setLoadingMessage] = useState('Looking up product…');
@@ -202,7 +205,7 @@ export function ScanScreen({ navigation, route }: Props) {
   if (!permission) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#2D6A4F" />
+        <ActivityIndicator color={colors.primary.base} />
       </View>
     );
   }
@@ -211,9 +214,7 @@ export function ScanScreen({ navigation, route }: Props) {
     return (
       <View style={styles.center}>
         <Text style={styles.permText}>Camera access is required to scan barcodes.</Text>
-        <TouchableOpacity style={styles.permBtn} onPress={requestPermission}>
-          <Text style={styles.permBtnText}>Grant access</Text>
-        </TouchableOpacity>
+        <Button label="Grant access" onPress={requestPermission} />
       </View>
     );
   }
@@ -259,7 +260,7 @@ export function ScanScreen({ navigation, route }: Props) {
 
       {mode === 'loading' && (
         <View style={styles.overlayDark}>
-          <ActivityIndicator color="#fff" size="large" />
+          <ActivityIndicator color={colors.text.inverse} size="large" />
           <Text style={styles.loadingText}>{loadingMessage}</Text>
         </View>
       )}
@@ -276,9 +277,7 @@ export function ScanScreen({ navigation, route }: Props) {
               Point the camera at the product label and take a photo. Claude will identify it for
               you.
             </Text>
-            <TouchableOpacity style={styles.photoBtn} onPress={takePhoto}>
-              <Text style={styles.photoBtnText}>Take photo</Text>
-            </TouchableOpacity>
+            <Button label="Take photo" onPress={takePhoto} size="lg" fullWidth />
             <TouchableOpacity
               style={styles.skipBtn}
               onPress={() => {
@@ -311,99 +310,100 @@ export function ScanScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  camera: { flex: 1 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  permText: { fontSize: 15, color: '#444', textAlign: 'center', marginBottom: 20 },
-  permBtn: {
-    backgroundColor: '#2D6A4F',
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  permBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
-  overlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center' },
-  overlayDark: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  loadingText: { color: '#fff', fontSize: 16 },
-  scanFrame: {
-    width: 240,
-    height: 120,
-    borderWidth: 2,
-    borderColor: '#52B788',
-    borderRadius: 8,
-    backgroundColor: 'transparent',
-  },
-  hint: {
-    marginTop: 20,
-    color: '#fff',
-    fontSize: 15,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  shutterFlash: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#fff',
-    zIndex: 10,
-  },
-  overlayDim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
-  photoPanel: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 28,
-    paddingBottom: 44,
-    alignItems: 'center',
-  },
-  photoPanelBadge: {
-    backgroundColor: '#FFF3CD',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    marginBottom: 16,
-  },
-  photoPanelBadgeText: { fontSize: 12, fontWeight: '600', color: '#856404' },
-  photoPanelTitle: { fontSize: 20, fontWeight: '700', color: '#1A1A1A', marginBottom: 8 },
-  photoPanelBody: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  photoBtn: {
-    backgroundColor: '#2D6A4F',
-    borderRadius: 12,
-    paddingVertical: 15,
-    paddingHorizontal: 48,
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  photoBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  manualBtn: {
-    marginTop: 32,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
-  },
-  manualBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  skipBtn: { paddingVertical: 8 },
-  skipText: { color: '#2D6A4F', fontSize: 14, fontWeight: '600' },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    container: { flex: 1 },
+    camera: { flex: 1 },
+    center: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+      backgroundColor: colors.bg.default,
+    },
+    permText: {
+      fontSize: 15,
+      color: colors.text.secondary,
+      textAlign: 'center',
+      marginBottom: 20,
+    },
+    overlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center' },
+    overlayDark: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 16,
+    },
+    loadingText: { color: '#fff', fontSize: 16 },
+    scanFrame: {
+      width: 240,
+      height: 120,
+      borderWidth: 2,
+      borderColor: colors.primary.accent,
+      borderRadius: 8,
+      backgroundColor: 'transparent',
+    },
+    hint: {
+      marginTop: 20,
+      color: '#fff',
+      fontSize: 15,
+      backgroundColor: 'rgba(0,0,0,0.45)',
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: 20,
+      overflow: 'hidden',
+    },
+    shutterFlash: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: '#fff',
+      zIndex: 10,
+    },
+    overlayDim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
+    photoPanel: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.bg.surface,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      padding: 28,
+      paddingBottom: 44,
+      alignItems: 'center',
+    },
+    photoPanelBadge: {
+      backgroundColor: colors.warning.soft,
+      borderRadius: 20,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      marginBottom: 16,
+    },
+    photoPanelBadgeText: { fontSize: 12, fontWeight: '600', color: colors.warning.text },
+    photoPanelTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: colors.text.primary,
+      marginBottom: 8,
+    },
+    photoPanelBody: {
+      fontSize: 14,
+      color: colors.text.subtle,
+      textAlign: 'center',
+      lineHeight: 20,
+      marginBottom: 24,
+    },
+    manualBtn: {
+      marginTop: 32,
+      backgroundColor: 'rgba(0,0,0,0.45)',
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.4)',
+    },
+    manualBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+    skipBtn: { paddingVertical: 8, marginTop: 8 },
+    skipText: { color: colors.primary.base, fontSize: 14, fontWeight: '600' },
+  });
+}

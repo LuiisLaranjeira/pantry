@@ -5,7 +5,6 @@ import {
   Platform,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -14,6 +13,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '@/app/navigation/types';
 import { useSignIn } from '@/features/auth/hooks/useSignIn';
 import { isAppError } from '@/shared/api/errors';
+import { Button, TextField, useTheme } from '@/shared/ui';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -21,6 +21,7 @@ export function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const signIn = useSignIn();
+  const { colors, typography } = useTheme();
 
   const handleLogin = () => {
     if (!email || !password) return;
@@ -39,43 +40,49 @@ export function LoginScreen({ navigation }: Props) {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.bg.default }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.inner}>
-        <Text style={styles.title}>Pantry</Text>
-        <Text style={styles.subtitle}>Household stock manager</Text>
+        <Text
+          style={[styles.title, { color: colors.primary.base, fontWeight: typography.weight.bold }]}
+        >
+          Pantry
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.text.muted }]}>Household stock manager</Text>
 
-        <TextInput
-          style={styles.input}
+        <TextField
+          containerStyle={styles.field}
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
-          placeholderTextColor="#999"
           editable={!isPending}
         />
-        <TextInput
-          style={styles.input}
+        <TextField
+          containerStyle={styles.field}
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
-          placeholderTextColor="#999"
           editable={!isPending}
         />
 
-        <TouchableOpacity
-          style={[styles.button, isPending && styles.buttonDisabled]}
+        <Button
+          label="Sign in"
           onPress={handleLogin}
-          disabled={isPending}
-        >
-          <Text style={styles.buttonText}>{isPending ? 'Signing in…' : 'Sign in'}</Text>
-        </TouchableOpacity>
+          loading={isPending}
+          disabled={!email || !password}
+          size="lg"
+          fullWidth
+          style={styles.button}
+        />
 
         <TouchableOpacity style={styles.link} onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.linkText}>No account? Register</Text>
+          <Text style={[styles.linkText, { color: colors.primary.base }]}>
+            No account? Register
+          </Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -83,29 +90,12 @@ export function LoginScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
+  container: { flex: 1 },
   inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
-  title: { fontSize: 36, fontWeight: '700', color: '#2D6A4F', textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#777', textAlign: 'center', marginBottom: 40 },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
-    fontSize: 16,
-    color: '#111',
-  },
-  button: {
-    backgroundColor: '#2D6A4F',
-    borderRadius: 10,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  title: { fontSize: 36, textAlign: 'center' },
+  subtitle: { fontSize: 14, textAlign: 'center', marginBottom: 40 },
+  field: { marginBottom: 12 },
+  button: { marginTop: 8 },
   link: { marginTop: 20, alignItems: 'center' },
-  linkText: { color: '#2D6A4F', fontSize: 14 },
+  linkText: { fontSize: 14 },
 });

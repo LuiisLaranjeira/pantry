@@ -17,7 +17,7 @@ import { useSignOut } from '@/features/auth/hooks/useSignOut';
 import { ActivitySection } from '@/features/profile/components/ActivitySection';
 import { CountryPicker } from '@/features/profile/components/CountryPicker';
 import { SpendingSection } from '@/features/profile/components/SpendingSection';
-import { profileStyles as styles } from '@/features/profile/components/styles';
+import { useProfileStyles } from '@/features/profile/components/styles';
 import { COUNTRIES } from '@/features/profile/constants';
 import { useCheckLowStockNow } from '@/features/profile/hooks/useCheckLowStockNow';
 import { useExportHistory } from '@/features/profile/hooks/useExportHistory';
@@ -31,9 +31,12 @@ import { useToggleNotifications } from '@/features/profile/hooks/useToggleNotifi
 import { useUpdateHouseholdPrefs } from '@/features/profile/hooks/useUpdateHouseholdPrefs';
 import { useUserEmail } from '@/features/profile/hooks/useUserEmail';
 import { isAppError } from '@/shared/api/errors';
+import { useTheme } from '@/shared/ui';
 
 export function ProfileScreen() {
   const { householdId, refresh } = useAppState();
+  const styles = useProfileStyles();
+  const { colors } = useTheme();
   const [countryPickerVisible, setCountryPickerVisible] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
 
@@ -54,7 +57,7 @@ export function ProfileScreen() {
   const loading = household.isPending || userEmail.isPending || notificationsState.isPending;
 
   if (loading) {
-    return <ActivityIndicator style={styles.loader} color="#2D6A4F" size="large" />;
+    return <ActivityIndicator style={styles.loader} color={colors.primary.base} size="large" />;
   }
 
   const hh = household.data;
@@ -141,7 +144,12 @@ export function ProfileScreen() {
         <Text style={styles.sectionTitle}>Household</Text>
         <View style={styles.card}>
           <View style={styles.row}>
-            <Ionicons name="home-outline" size={20} color="#2D6A4F" style={styles.rowIcon} />
+            <Ionicons
+              name="home-outline"
+              size={20}
+              color={colors.primary.base}
+              style={styles.rowIcon}
+            />
             <View style={styles.rowBody}>
               <Text style={styles.rowLabel}>Name</Text>
               <Text style={styles.rowValue}>{hh?.name ?? '—'}</Text>
@@ -149,7 +157,12 @@ export function ProfileScreen() {
           </View>
           <View style={styles.divider} />
           <View style={styles.row}>
-            <Ionicons name="people-outline" size={20} color="#2D6A4F" style={styles.rowIcon} />
+            <Ionicons
+              name="people-outline"
+              size={20}
+              color={colors.primary.base}
+              style={styles.rowIcon}
+            />
             <View style={styles.rowBody}>
               <Text style={styles.rowLabel}>Members</Text>
               <Text style={styles.rowValue}>{hh?.member_count ?? '—'}</Text>
@@ -157,7 +170,12 @@ export function ProfileScreen() {
           </View>
           <View style={styles.divider} />
           <View style={styles.row}>
-            <Ionicons name="key-outline" size={20} color="#2D6A4F" style={styles.rowIcon} />
+            <Ionicons
+              name="key-outline"
+              size={20}
+              color={colors.primary.base}
+              style={styles.rowIcon}
+            />
             <View style={styles.rowBody}>
               <Text style={styles.rowLabel}>Invite code</Text>
               <Text style={styles.inviteCode}>{hh?.invite_code ?? '—'}</Text>
@@ -166,11 +184,11 @@ export function ProfileScreen() {
               <Ionicons
                 name={codeCopied ? 'checkmark' : 'copy-outline'}
                 size={20}
-                color={codeCopied ? '#2D6A4F' : '#888'}
+                color={codeCopied ? colors.primary.base : colors.text.muted}
               />
             </TouchableOpacity>
             <TouchableOpacity onPress={shareCode} style={styles.iconBtn}>
-              <Ionicons name="share-outline" size={20} color="#888" />
+              <Ionicons name="share-outline" size={20} color={colors.text.muted} />
             </TouchableOpacity>
           </View>
         </View>
@@ -182,7 +200,12 @@ export function ProfileScreen() {
         <Text style={styles.sectionTitle}>Preferences</Text>
         <View style={styles.card}>
           <TouchableOpacity style={styles.row} onPress={() => setCountryPickerVisible(true)}>
-            <Ionicons name="globe-outline" size={20} color="#2D6A4F" style={styles.rowIcon} />
+            <Ionicons
+              name="globe-outline"
+              size={20}
+              color={colors.primary.base}
+              style={styles.rowIcon}
+            />
             <View style={styles.rowBody}>
               <Text style={styles.rowLabel}>Country</Text>
               <Text style={styles.rowValue}>
@@ -191,11 +214,16 @@ export function ProfileScreen() {
                   : 'Not set'}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CCC" />
+            <Ionicons name="chevron-forward" size={16} color={colors.border.strong} />
           </TouchableOpacity>
           <View style={styles.divider} />
           <View style={styles.row}>
-            <Ionicons name="layers-outline" size={20} color="#2D6A4F" style={styles.rowIcon} />
+            <Ionicons
+              name="layers-outline"
+              size={20}
+              color={colors.primary.base}
+              style={styles.rowIcon}
+            />
             <View style={styles.rowBody}>
               <Text style={styles.rowLabel}>Grouped pantry view</Text>
               <Text style={styles.rowSubLabel}>Group items by type, ignoring brand</Text>
@@ -203,8 +231,8 @@ export function ProfileScreen() {
             <Switch
               value={hh?.grouped_view ?? false}
               onValueChange={(value) => onUpdatePrefs({ grouped_view: value })}
-              trackColor={{ false: '#E0E0E0', true: '#A8D5BF' }}
-              thumbColor={hh?.grouped_view ? '#2D6A4F' : '#f4f3f4'}
+              trackColor={{ false: colors.border.default, true: colors.primary.muted }}
+              thumbColor={hh?.grouped_view ? colors.primary.base : '#f4f3f4'}
             />
           </View>
         </View>
@@ -220,15 +248,20 @@ export function ProfileScreen() {
             onPress={onExportStock}
             disabled={exportStock.isPending}
           >
-            <Ionicons name="archive-outline" size={20} color="#2D6A4F" style={styles.rowIcon} />
+            <Ionicons
+              name="archive-outline"
+              size={20}
+              color={colors.primary.base}
+              style={styles.rowIcon}
+            />
             <View style={styles.rowBody}>
               <Text style={styles.rowLabel}>Pantry stock</Text>
               <Text style={styles.rowSubLabel}>Export current stock as CSV</Text>
             </View>
             {exportStock.isPending ? (
-              <ActivityIndicator size="small" color="#888" />
+              <ActivityIndicator size="small" color={colors.text.muted} />
             ) : (
-              <Ionicons name="download-outline" size={20} color="#888" />
+              <Ionicons name="download-outline" size={20} color={colors.text.muted} />
             )}
           </TouchableOpacity>
           <View style={styles.divider} />
@@ -237,15 +270,20 @@ export function ProfileScreen() {
             onPress={onExportHistory}
             disabled={exportHistory.isPending}
           >
-            <Ionicons name="receipt-outline" size={20} color="#2D6A4F" style={styles.rowIcon} />
+            <Ionicons
+              name="receipt-outline"
+              size={20}
+              color={colors.primary.base}
+              style={styles.rowIcon}
+            />
             <View style={styles.rowBody}>
               <Text style={styles.rowLabel}>Shopping history</Text>
               <Text style={styles.rowSubLabel}>Export all past lists as CSV</Text>
             </View>
             {exportHistory.isPending ? (
-              <ActivityIndicator size="small" color="#888" />
+              <ActivityIndicator size="small" color={colors.text.muted} />
             ) : (
-              <Ionicons name="download-outline" size={20} color="#888" />
+              <Ionicons name="download-outline" size={20} color={colors.text.muted} />
             )}
           </TouchableOpacity>
         </View>
@@ -258,7 +296,7 @@ export function ProfileScreen() {
             <Ionicons
               name="notifications-outline"
               size={20}
-              color="#2D6A4F"
+              color={colors.primary.base}
               style={styles.rowIcon}
             />
             <View style={styles.rowBody}>
@@ -268,8 +306,8 @@ export function ProfileScreen() {
             <Switch
               value={notificationsOn}
               onValueChange={onToggleNotifs}
-              trackColor={{ false: '#E0E0E0', true: '#A8D5BF' }}
-              thumbColor={notificationsOn ? '#2D6A4F' : '#f4f3f4'}
+              trackColor={{ false: colors.border.default, true: colors.primary.muted }}
+              thumbColor={notificationsOn ? colors.primary.base : '#f4f3f4'}
             />
           </View>
           {notificationsOn && (
@@ -280,7 +318,12 @@ export function ProfileScreen() {
                 onPress={onCheckLowStock}
                 disabled={checkLowStock.isPending}
               >
-                <Ionicons name="scan-outline" size={20} color="#2D6A4F" style={styles.rowIcon} />
+                <Ionicons
+                  name="scan-outline"
+                  size={20}
+                  color={colors.primary.base}
+                  style={styles.rowIcon}
+                />
                 <View style={styles.rowBody}>
                   <Text style={styles.rowLabel}>Check low stock now</Text>
                   <Text style={styles.rowSubLabel}>
@@ -288,9 +331,9 @@ export function ProfileScreen() {
                   </Text>
                 </View>
                 {checkLowStock.isPending ? (
-                  <ActivityIndicator size="small" color="#888" />
+                  <ActivityIndicator size="small" color={colors.text.muted} />
                 ) : (
-                  <Ionicons name="chevron-forward" size={16} color="#CCC" />
+                  <Ionicons name="chevron-forward" size={16} color={colors.border.strong} />
                 )}
               </TouchableOpacity>
             </>
@@ -302,7 +345,12 @@ export function ProfileScreen() {
         <Text style={styles.sectionTitle}>Account</Text>
         <View style={styles.card}>
           <View style={styles.row}>
-            <Ionicons name="person-outline" size={20} color="#2D6A4F" style={styles.rowIcon} />
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color={colors.primary.base}
+              style={styles.rowIcon}
+            />
             <View style={styles.rowBody}>
               <Text style={styles.rowLabel}>Email</Text>
               <Text style={styles.rowValue}>{userEmail.data ?? '—'}</Text>
@@ -310,20 +358,30 @@ export function ProfileScreen() {
           </View>
           <View style={styles.divider} />
           <TouchableOpacity style={styles.row} onPress={onLogout}>
-            <Ionicons name="log-out-outline" size={20} color="#E53935" style={styles.rowIcon} />
+            <Ionicons
+              name="log-out-outline"
+              size={20}
+              color={colors.danger.base}
+              style={styles.rowIcon}
+            />
             <View style={styles.rowBody}>
               <Text style={[styles.rowLabel, styles.danger]}>Log out</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CCC" />
+            <Ionicons name="chevron-forward" size={16} color={colors.border.strong} />
           </TouchableOpacity>
           <View style={styles.divider} />
           <TouchableOpacity style={styles.row} onPress={onLeaveHousehold}>
-            <Ionicons name="exit-outline" size={20} color="#E53935" style={styles.rowIcon} />
+            <Ionicons
+              name="exit-outline"
+              size={20}
+              color={colors.danger.base}
+              style={styles.rowIcon}
+            />
             <View style={styles.rowBody}>
               <Text style={[styles.rowLabel, styles.danger]}>Leave household</Text>
               <Text style={styles.rowSubLabel}>You&apos;ll need a new invite code to rejoin</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CCC" />
+            <Ionicons name="chevron-forward" size={16} color={colors.border.strong} />
           </TouchableOpacity>
         </View>
       </View>
