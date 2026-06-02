@@ -44,6 +44,15 @@
       ],
       "@sentry/react-native"
     ],
+    "updates": {
+      "url": "https://u.expo.dev/e499f549-e0a5-4ef6-9cbd-365c5251a97d",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "extra": {
       "eas": {
         "projectId": "e499f549-e0a5-4ef6-9cbd-365c5251a97d"
