@@ -7,28 +7,31 @@ export interface RateLimit {
   max: number;
 }
 
+function adminClient() {
+  const url = Deno.env.get('SUPABASE_URL');
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!url || !serviceKey) return null;
+  return createClient(url, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
 /**
- * Per-user rolling-window rate limit. Counts the caller's rows in
- * api_call_log for this function over the last `windowMs`, denies with
- * 429 when above `max`, otherwise records the call.
+ * Read-only check. Throws HttpError(429) if the caller is already at or
+ * above the cap. Does NOT record the call — callers invoke
+ * recordRateLimitedCall() after the work succeeds so a transient failure
+ * doesn't burn an attempt.
  *
- * Fails OPEN: if the environment isn't configured or the count query
- * errors, the call is allowed. That trades hard correctness for
- * availability — we don't want a transient infra glitch to lock all
- * users out of scanning.
+ * Fails OPEN on infra glitches (missing env, query error) so a Supabase
+ * outage doesn't lock every user out of scanning.
  */
-export async function enforceRateLimit(
+export async function checkRateLimit(
   userId: string,
   functionName: string,
   limit: RateLimit,
 ): Promise<void> {
-  const url = Deno.env.get('SUPABASE_URL');
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  if (!url || !serviceKey) return;
-
-  const supabase = createClient(url, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  const supabase = adminClient();
+  if (!supabase) return;
 
   const since = new Date(Date.now() - limit.windowMs).toISOString();
   const { count, error } = await supabase
@@ -43,9 +46,23 @@ export async function enforceRateLimit(
   if ((count ?? 0) >= limit.max) {
     throw new HttpError(429, 'Too many requests. Please try again in a moment.');
   }
+}
 
-  await supabase.from('api_call_log').insert({
-    user_id: userId,
-    function_name: functionName,
-  });
+/**
+ * Records that the caller consumed one slot of the rate limit. Best
+ * effort: failures here are swallowed because the alternative (telling
+ * the user the request succeeded but ALSO that we couldn't count it) is
+ * worse than over-budget drift.
+ */
+export async function recordRateLimitedCall(userId: string, functionName: string): Promise<void> {
+  const supabase = adminClient();
+  if (!supabase) return;
+  try {
+    await supabase.from('api_call_log').insert({
+      user_id: userId,
+      function_name: functionName,
+    });
+  } catch {
+    // ignore — see comment above
+  }
 }

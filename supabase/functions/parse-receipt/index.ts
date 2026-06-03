@@ -1,8 +1,9 @@
 import { requireUser } from '../_shared/auth.ts';
 import { corsHeaders, HttpError, jsonResponse, toErrorResponse } from '../_shared/http.ts';
-import { enforceRateLimit } from '../_shared/rate_limit.ts';
+import { checkRateLimit, recordRateLimitedCall } from '../_shared/rate_limit.ts';
 import { detectImageMime, validateBase64Image, validateText } from '../_shared/validation.ts';
 
+const FUNCTION_NAME = 'parse-receipt';
 const RATE_LIMIT = { windowMs: 60_000, max: 20 };
 
 const PARSE_PROMPT = (input: string) => `
@@ -150,7 +151,7 @@ Deno.serve(async (req) => {
   try {
     const user = await requireUser(req);
     userId = user.id;
-    await enforceRateLimit(user.id, 'parse-receipt', RATE_LIMIT);
+    await checkRateLimit(user.id, FUNCTION_NAME, RATE_LIMIT);
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== 'object') {
@@ -268,6 +269,7 @@ Deno.serve(async (req) => {
       ocrText: receiptText,
     });
 
+    await recordRateLimitedCall(user.id, FUNCTION_NAME);
     return jsonResponse({ store: parsed.store ?? null, items });
   } catch (err) {
     if (userId && !(err instanceof HttpError && err.status === 429)) {

@@ -1,8 +1,9 @@
 import { requireUser } from '../_shared/auth.ts';
 import { corsHeaders, HttpError, jsonResponse, toErrorResponse } from '../_shared/http.ts';
-import { enforceRateLimit } from '../_shared/rate_limit.ts';
+import { checkRateLimit, recordRateLimitedCall } from '../_shared/rate_limit.ts';
 import { detectImageMime, validateBase64Image } from '../_shared/validation.ts';
 
+const FUNCTION_NAME = 'identify-product';
 const RATE_LIMIT = { windowMs: 60_000, max: 20 };
 
 Deno.serve(async (req) => {
@@ -12,7 +13,7 @@ Deno.serve(async (req) => {
 
   try {
     const user = await requireUser(req);
-    await enforceRateLimit(user.id, 'identify-product', RATE_LIMIT);
+    await checkRateLimit(user.id, FUNCTION_NAME, RATE_LIMIT);
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== 'object') {
@@ -70,6 +71,7 @@ Deno.serve(async (req) => {
     }
 
     const product = JSON.parse(jsonMatch[0]);
+    await recordRateLimitedCall(user.id, FUNCTION_NAME);
     return jsonResponse({ ...product, barcode: typeof barcode === 'string' ? barcode : null });
   } catch (err) {
     return toErrorResponse(err);
