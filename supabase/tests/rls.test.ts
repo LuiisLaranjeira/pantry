@@ -78,6 +78,65 @@ describe('RLS invariants', () => {
         .eq('household_id', bob.householdId);
       expect(data).toEqual([]);
     });
+
+    test('direct INSERT into household_users is denied (RPC-only writes)', async () => {
+      // Migration 20260603130000 dropped the legacy INSERT policy. The
+      // only way new rows land here is via create_household() /
+      // join_household_by_invite_code() (both SECURITY DEFINER). A
+      // direct REST call with the user's own JWT — even asserting their
+      // own user_id — must fail.
+      const { error } = await alice.client.from('household_users').insert({
+        household_id: bob.householdId,
+        user_id: alice.userId,
+      });
+      expect(error).not.toBeNull();
+      // Cross-check: the row really wasn't silently created.
+      const { data: rows } = await admin
+        .from('household_users')
+        .select('user_id')
+        .eq('household_id', bob.householdId)
+        .eq('user_id', alice.userId);
+      expect(rows).toEqual([]);
+    });
+
+    test('a user can delete their own membership row (Leave household)', async () => {
+      // Provision a one-shot tester so afterAll cleanup still works.
+      const dave = await provisionTestUser('dave');
+      try {
+        const { error } = await dave.client
+          .from('household_users')
+          .delete()
+          .eq('household_id', dave.householdId)
+          .eq('user_id', dave.userId);
+        expect(error).toBeNull();
+        const { data: rows } = await admin
+          .from('household_users')
+          .select('user_id')
+          .eq('household_id', dave.householdId)
+          .eq('user_id', dave.userId);
+        expect(rows).toEqual([]);
+      } finally {
+        await destroyTestUser(dave);
+      }
+    });
+
+    test("a user cannot delete another user's membership row", async () => {
+      // Alice tries to evict Bob from his own household.
+      const { error } = await alice.client
+        .from('household_users')
+        .delete()
+        .eq('household_id', bob.householdId)
+        .eq('user_id', bob.userId);
+      // RLS denies silently (zero rows touched, no error). Either
+      // outcome is acceptable; what matters is the row survives.
+      expect(error).toBeNull();
+      const { data: rows } = await admin
+        .from('household_users')
+        .select('user_id')
+        .eq('household_id', bob.householdId)
+        .eq('user_id', bob.userId);
+      expect(rows).toEqual([{ user_id: bob.userId }]);
+    });
   });
 
   describe('stock_items', () => {
