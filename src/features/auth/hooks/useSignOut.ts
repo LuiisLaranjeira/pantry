@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { clearPersistedQueries } from '@/app/providers/QueryProvider';
+import { clearPersistedQueries } from '@/app/providers/queryPersister';
 import { authRepo } from '@/features/auth/api/authRepo';
 import { STORAGE_KEYS } from '@/shared/lib/storageKeys';
 

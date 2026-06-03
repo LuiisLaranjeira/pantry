@@ -256,13 +256,19 @@ want polish.
 
 ## 8. Decommissioning pantry2
 
-The legacy `users can join households` INSERT policy on
-`household_users` has already been dropped in migration
-20260603130000 — pantry2's direct `household_users.insert` call no
-longer works against the production database. The remaining steps:
+Migration 20260603130000 drops the legacy `users can join households`
+INSERT policy on `household_users`. Once that migration is applied
+to the prod project (via the supabase-deploy workflow on the next
+push to `main` or `v*` tag), pantry2's direct
+`household_users.insert` call will start returning 4xx against
+production. Until then, pantry2 keeps working against prod.
 
-1. Optionally drop the `users can create households` permissive
+Sequence:
+
+1. Apply migration 20260603130000 to prod by merging it to `main`
+   or tagging a release. CI handles the deploy.
+2. Optionally drop the `users can create households` permissive
    INSERT policy on `households` and require `create_household()`
    exclusively. Currently kept permissive in case future tooling
    needs direct inserts.
-2. Archive `pantry2/` (move out of the working dir or delete).
+3. Archive `pantry2/` (move out of the working dir or delete).

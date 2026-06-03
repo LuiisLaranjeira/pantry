@@ -7,8 +7,6 @@ import { isAppError } from '@/shared/api/errors';
 
 import { queryPersister } from './queryPersister';
 
-export { QUERY_PERSIST_KEY, clearPersistedQueries } from './queryPersister';
-
 const MAX_QUERY_RETRIES = 3;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 

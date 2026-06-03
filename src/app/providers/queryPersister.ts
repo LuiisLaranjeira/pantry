@@ -17,12 +17,14 @@ export const queryPersister = createAsyncStoragePersister({
 });
 
 /**
- * Clears the in-memory cache AND the persisted cache. Use after
- * sign-out / account deletion so the next session doesn't rehydrate
- * the previous user's data.
+ * Removes the persisted cache from AsyncStorage. The caller is
+ * responsible for `queryClient.clear()` to flush the in-memory cache
+ * — do both on sign-out / account deletion so the next session
+ * doesn't rehydrate the previous user's data.
  *
- * persister.removeClient() removes the on-disk entry directly. The
- * caller is responsible for queryClient.clear() to flush memory.
+ * Hits the persister directly (rather than `AsyncStorage.removeItem`)
+ * so we don't race with the persister's throttled write of an
+ * otherwise-empty cache.
  */
 export async function clearPersistedQueries(): Promise<void> {
   await queryPersister.removeClient();

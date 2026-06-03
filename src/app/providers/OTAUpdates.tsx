@@ -42,14 +42,17 @@ export function OTAUpdates() {
     pendingReloadRef.current = true;
 
     const onAppStateChange = (next: AppStateStatus) => {
-      if (next === 'active' && pendingReloadRef.current) {
-        pendingReloadRef.current = false;
-        Updates.reloadAsync().catch((err: unknown) => {
-          // If reload fails, the cold-start path applies the update
-          // next time the user opens the app.
+      if (next !== 'active' || !pendingReloadRef.current) return;
+      Updates.reloadAsync()
+        .then(() => {
+          pendingReloadRef.current = false;
+        })
+        .catch((err: unknown) => {
+          // Leave the flag set so the next foreground transition
+          // retries. The cold-start path also applies the update
+          // whenever the user eventually relaunches the app.
           logger.warn('OTA reload failed', { reason: errorMessage(err) });
         });
-      }
     };
 
     const sub = AppState.addEventListener('change', onAppStateChange);
