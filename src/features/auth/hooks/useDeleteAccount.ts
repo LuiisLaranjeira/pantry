@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useAppState } from '@/app/providers/AppStateProvider';
-import { QUERY_PERSIST_KEY } from '@/app/providers/QueryProvider';
+import { clearPersistedQueries } from '@/app/providers/QueryProvider';
 import { authRepo } from '@/features/auth/api/authRepo';
 import { STORAGE_KEYS } from '@/shared/lib/storageKeys';
 
@@ -21,12 +21,12 @@ export function useDeleteAccount() {
     mutationFn: async () => {
       await authRepo.deleteAccount();
       queryClient.clear();
+      await clearPersistedQueries();
       await AsyncStorage.multiRemove([
         STORAGE_KEYS.householdId,
         STORAGE_KEYS.householdName,
         STORAGE_KEYS.householdCountry,
       ]);
-      await AsyncStorage.removeItem(QUERY_PERSIST_KEY);
       await authRepo.signOut().catch(() => {
         // The user is gone server-side; signOut might 401. The local session
         // gets cleared by supabase-js regardless.

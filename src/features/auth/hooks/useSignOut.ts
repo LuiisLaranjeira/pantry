@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { QUERY_PERSIST_KEY } from '@/app/providers/QueryProvider';
+import { clearPersistedQueries } from '@/app/providers/QueryProvider';
 import { authRepo } from '@/features/auth/api/authRepo';
 import { STORAGE_KEYS } from '@/shared/lib/storageKeys';
 
@@ -15,8 +15,10 @@ export function useSignOut() {
     onSuccess: async () => {
       // Drop any cached data for the signed-out user so the next sign-in
       // doesn't rehydrate the previous user's queries.
+      // clearPersistedQueries hits the persister directly so we don't race
+      // with its throttled write of the cleared in-memory state.
       queryClient.clear();
-      await AsyncStorage.removeItem(QUERY_PERSIST_KEY);
+      await clearPersistedQueries();
     },
   });
 }

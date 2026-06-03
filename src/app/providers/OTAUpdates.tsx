@@ -1,19 +1,28 @@
 import * as Updates from 'expo-updates';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 
 import { logger } from '@/shared/lib/logger';
 
 /**
  * Surfaces expo-updates lifecycle events through the logger so OTA
- * rollouts are observable in Sentry. The runtime is configured to
- * `checkAutomatically: "ON_LOAD"` in app.json, so it already fetches
- * available updates on cold start; this component just records the
- * outcome and tries to apply pending updates promptly.
+ * rollouts are observable in Sentry. The runtime is already configured
+ * to `checkAutomatically: "ON_LOAD"` in app.config.ts; this component
+ * records transitions and applies updates without disrupting the user
+ * mid-session.
+ *
+ * Reload policy: when an update finishes downloading, we DO NOT reload
+ * immediately. Reloading mid-session would discard any in-progress UI
+ * state (forms, camera view, half-built shopping lists). Instead we
+ * wait for the next time the app comes back to the foreground from
+ * background. If the user never backgrounds the app, the update applies
+ * on the next cold start anyway (expo-updates' default).
  *
  * No-op in dev (Updates is not initialized) and on web.
  */
 export function OTAUpdates() {
   const state = Updates.useUpdates();
+  const pendingReloadRef = useRef(false);
 
   useEffect(() => {
     if (__DEV__ || !Updates.isEnabled) return;
@@ -27,12 +36,24 @@ export function OTAUpdates() {
 
   useEffect(() => {
     if (__DEV__ || !Updates.isEnabled) return;
-    if (state.isUpdatePending) {
-      logger.info('OTA update ready; reloading');
-      Updates.reloadAsync().catch((err: unknown) => {
-        logger.warn('OTA reload failed', { reason: errorMessage(err) });
-      });
-    }
+    if (!state.isUpdatePending) return;
+
+    logger.info('OTA update ready; will apply on next foreground');
+    pendingReloadRef.current = true;
+
+    const onAppStateChange = (next: AppStateStatus) => {
+      if (next === 'active' && pendingReloadRef.current) {
+        pendingReloadRef.current = false;
+        Updates.reloadAsync().catch((err: unknown) => {
+          // If reload fails, the cold-start path applies the update
+          // next time the user opens the app.
+          logger.warn('OTA reload failed', { reason: errorMessage(err) });
+        });
+      }
+    };
+
+    const sub = AppState.addEventListener('change', onAppStateChange);
+    return () => sub.remove();
   }, [state.isUpdatePending]);
 
   useEffect(() => {

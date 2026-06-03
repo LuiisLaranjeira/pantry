@@ -1,5 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import * as Application from 'expo-application';
@@ -7,10 +5,12 @@ import { useMemo, type PropsWithChildren } from 'react';
 
 import { isAppError } from '@/shared/api/errors';
 
+import { queryPersister } from './queryPersister';
+
+export { QUERY_PERSIST_KEY, clearPersistedQueries } from './queryPersister';
+
 const MAX_QUERY_RETRIES = 3;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
-export const QUERY_PERSIST_KEY = 'pantry-query-cache-v1';
 
 /**
  * Don't retry user-recoverable failures (auth, not_found, conflict, forbidden,
@@ -62,16 +62,6 @@ export function QueryProvider({ children }: PropsWithChildren) {
     [],
   );
 
-  const persister = useMemo(
-    () =>
-      createAsyncStoragePersister({
-        storage: AsyncStorage,
-        key: QUERY_PERSIST_KEY,
-        throttleTime: 1000,
-      }),
-    [],
-  );
-
   // Bust the persisted cache when the app version changes so a release
   // that reshapes a query payload doesn't surface stale data.
   const buster = Application.nativeApplicationVersion ?? 'dev';
@@ -80,7 +70,7 @@ export function QueryProvider({ children }: PropsWithChildren) {
     <PersistQueryClientProvider
       client={client}
       persistOptions={{
-        persister,
+        persister: queryPersister,
         maxAge: ONE_DAY_MS,
         buster,
       }}

@@ -52,7 +52,20 @@ export function initSentry(): void {
   initialized = true;
 
   const dsn = env.EXPO_PUBLIC_SENTRY_DSN;
-  if (!dsn) return;
+  if (!dsn) {
+    if (!__DEV__) {
+      // Don't use the logger here — it routes through Sentry itself.
+      // Production builds shipped without a DSN go silent, which is
+      // very easy to do via the eas env runbook; this nudge surfaces
+      // it during local validation of a release build.
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[sentry] EXPO_PUBLIC_SENTRY_DSN is not set; error reporting disabled. ' +
+          'Set it via `eas env:create` for the production profile.',
+      );
+    }
+    return;
+  }
 
   Sentry.init({
     dsn,
