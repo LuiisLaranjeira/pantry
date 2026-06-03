@@ -4,6 +4,7 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   ScrollView,
   Share,
   Switch,
@@ -13,6 +14,8 @@ import {
 } from 'react-native';
 
 import { useAppState } from '@/app/providers/AppStateProvider';
+import { env } from '@/config/env';
+import { useDeleteAccount } from '@/features/auth/hooks/useDeleteAccount';
 import { useSignOut } from '@/features/auth/hooks/useSignOut';
 import { ActivitySection } from '@/features/profile/components/ActivitySection';
 import { CountryPicker } from '@/features/profile/components/CountryPicker';
@@ -53,6 +56,7 @@ export function ProfileScreen() {
   const checkLowStock = useCheckLowStockNow(householdId);
   const toggleNotifs = useToggleNotifications();
   const signOut = useSignOut();
+  const deleteAccount = useDeleteAccount();
 
   const loading = household.isPending || userEmail.isPending || notificationsState.isPending;
 
@@ -137,6 +141,28 @@ export function ProfileScreen() {
         onPress: () => leaveHousehold.mutate(),
       },
     ]);
+
+  const onDeleteAccount = () =>
+    Alert.alert(
+      'Delete account',
+      'This permanently deletes your account, your data, and any households where you are the only member. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete account',
+          style: 'destructive',
+          onPress: () =>
+            deleteAccount.mutate(undefined, {
+              onError: (err) => {
+                const msg = isAppError(err) ? err.message : 'Could not delete account.';
+                Alert.alert('Delete failed', msg);
+              },
+            }),
+        },
+      ],
+    );
+
+  const openUrl = (url: string) => Linking.openURL(url).catch(() => undefined);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -383,8 +409,75 @@ export function ProfileScreen() {
             </View>
             <Ionicons name="chevron-forward" size={16} color={colors.border.strong} />
           </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity
+            style={styles.row}
+            onPress={onDeleteAccount}
+            disabled={deleteAccount.isPending}
+          >
+            <Ionicons
+              name="trash-outline"
+              size={20}
+              color={colors.danger.base}
+              style={styles.rowIcon}
+            />
+            <View style={styles.rowBody}>
+              <Text style={[styles.rowLabel, styles.danger]}>Delete account</Text>
+              <Text style={styles.rowSubLabel}>Permanently removes your account and data</Text>
+            </View>
+            {deleteAccount.isPending ? (
+              <ActivityIndicator size="small" color={colors.danger.base} />
+            ) : (
+              <Ionicons name="chevron-forward" size={16} color={colors.border.strong} />
+            )}
+          </TouchableOpacity>
         </View>
       </View>
+
+      {(env.EXPO_PUBLIC_PRIVACY_POLICY_URL || env.EXPO_PUBLIC_TERMS_URL) && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Legal</Text>
+          <View style={styles.card}>
+            {env.EXPO_PUBLIC_PRIVACY_POLICY_URL && (
+              <TouchableOpacity
+                style={styles.row}
+                onPress={() => openUrl(env.EXPO_PUBLIC_PRIVACY_POLICY_URL!)}
+              >
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={20}
+                  color={colors.primary.base}
+                  style={styles.rowIcon}
+                />
+                <View style={styles.rowBody}>
+                  <Text style={styles.rowLabel}>Privacy policy</Text>
+                </View>
+                <Ionicons name="open-outline" size={16} color={colors.text.muted} />
+              </TouchableOpacity>
+            )}
+            {env.EXPO_PUBLIC_PRIVACY_POLICY_URL && env.EXPO_PUBLIC_TERMS_URL && (
+              <View style={styles.divider} />
+            )}
+            {env.EXPO_PUBLIC_TERMS_URL && (
+              <TouchableOpacity
+                style={styles.row}
+                onPress={() => openUrl(env.EXPO_PUBLIC_TERMS_URL!)}
+              >
+                <Ionicons
+                  name="document-text-outline"
+                  size={20}
+                  color={colors.primary.base}
+                  style={styles.rowIcon}
+                />
+                <View style={styles.rowBody}>
+                  <Text style={styles.rowLabel}>Terms of service</Text>
+                </View>
+                <Ionicons name="open-outline" size={16} color={colors.text.muted} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
 
       <CountryPicker
         visible={countryPickerVisible}
