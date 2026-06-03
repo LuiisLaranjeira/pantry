@@ -53,16 +53,23 @@ export async function checkRateLimit(
  * effort: failures here are swallowed because the alternative (telling
  * the user the request succeeded but ALSO that we couldn't count it) is
  * worse than over-budget drift.
+ *
+ * supabase-js reports query failures (constraint violations, RLS denial,
+ * etc.) as a non-null `error` field rather than throwing; network or
+ * runtime failures reject the promise. We handle both — there's nothing
+ * actionable from this call site either way.
  */
 export async function recordRateLimitedCall(userId: string, functionName: string): Promise<void> {
   const supabase = adminClient();
   if (!supabase) return;
   try {
-    await supabase.from('api_call_log').insert({
-      user_id: userId,
-      function_name: functionName,
-    });
+    const { error } = await supabase
+      .from('api_call_log')
+      .insert({ user_id: userId, function_name: functionName });
+    if (error) {
+      // Query error (FK violation, RLS denial). Ignore.
+    }
   } catch {
-    // ignore — see comment above
+    // Network/runtime failure. Ignore.
   }
 }

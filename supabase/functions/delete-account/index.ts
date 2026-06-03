@@ -2,13 +2,14 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 import { requireUser } from '../_shared/auth.ts';
 import { corsHeaders, HttpError, jsonResponse, toErrorResponse } from '../_shared/http.ts';
-import { checkRateLimit, recordRateLimitedCall } from '../_shared/rate_limit.ts';
 
-const FUNCTION_NAME = 'delete-account';
-// One delete per day per user. The flow is irreversible; nobody should
-// hit this twice on purpose. The record is written only after the
-// delete succeeds, so a transient failure doesn't lock the user out.
-const RATE_LIMIT = { windowMs: 24 * 60 * 60 * 1000, max: 1 };
+// No rate limit here on purpose. JWT invalidation is the natural
+// barrier: once admin.deleteUser succeeds the user's tokens are dead,
+// so they can't authenticate to call this again. Recording a
+// rate-limit slot AFTER the delete would FK-fail (api_call_log.user_id
+// references auth.users with ON DELETE CASCADE); recording it BEFORE
+// the delete would burn the day on a transient failure. Neither
+// option earns its weight here.
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -21,7 +22,6 @@ Deno.serve(async (req) => {
 
   try {
     const user = await requireUser(req);
-    await checkRateLimit(user.id, FUNCTION_NAME, RATE_LIMIT);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -53,7 +53,6 @@ Deno.serve(async (req) => {
       throw new HttpError(500, 'Could not delete user account');
     }
 
-    await recordRateLimitedCall(user.id, FUNCTION_NAME);
     return jsonResponse({
       success: true,
       orphan_households_deleted: typeof orphanCount === 'number' ? orphanCount : 0,
