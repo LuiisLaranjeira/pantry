@@ -256,11 +256,13 @@ want polish.
 
 ## 8. Decommissioning pantry2
 
-Once `pantry-prod` is live and pantry2 traffic is zero:
+The legacy `users can join households` INSERT policy on
+`household_users` has already been dropped in migration
+20260603130000 — pantry2's direct `household_users.insert` call no
+longer works against the production database. The remaining steps:
 
-1. Drop the legacy `users can join households` policy on
-   `household_users` (currently retained for pantry2 — see
-   migration 20260602120000).
-2. Optionally drop the `users can create households` permissive
-   policy and require `create_household` exclusively.
-3. Archive `pantry2/` (move out of the working dir or delete).
+1. Optionally drop the `users can create households` permissive
+   INSERT policy on `households` and require `create_household()`
+   exclusively. Currently kept permissive in case future tooling
+   needs direct inserts.
+2. Archive `pantry2/` (move out of the working dir or delete).
