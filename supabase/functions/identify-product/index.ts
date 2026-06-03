@@ -1,7 +1,9 @@
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { requireUser } from '../_shared/auth.ts';
+import { corsHeaders, HttpError, jsonResponse, toErrorResponse } from '../_shared/http.ts';
+import { enforceRateLimit } from '../_shared/rate_limit.ts';
+import { detectImageMime, validateBase64Image } from '../_shared/validation.ts';
+
+const RATE_LIMIT = { windowMs: 60_000, max: 20 };
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -9,26 +11,22 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { image, barcode } = await req.json();
+    const user = await requireUser(req);
+    await enforceRateLimit(user.id, 'identify-product', RATE_LIMIT);
 
-    if (!image) {
-      return new Response(JSON.stringify({ error: 'No image provided' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      throw new HttpError(400, 'Invalid JSON body');
     }
+
+    const { image, barcode } = body as { image?: unknown; barcode?: unknown };
+    const validatedImage = validateBase64Image(image);
+    const mimeType = detectImageMime(validatedImage);
 
     const apiKey = Deno.env.get('GROQ_API_KEY');
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'GROQ_API_KEY not configured' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      throw new HttpError(500, 'GROQ_API_KEY not configured');
     }
-
-    // Detect MIME type from base64 magic bytes
-    const header = atob(image.slice(0, 16));
-    const mimeType = header.startsWith('\x89PNG') ? 'image/png' : 'image/jpeg';
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -44,7 +42,7 @@ Deno.serve(async (req) => {
             content: [
               {
                 type: 'image_url',
-                image_url: { url: `data:${mimeType};base64,${image}` },
+                image_url: { url: `data:${mimeType};base64,${validatedImage}` },
               },
               {
                 type: 'text',
@@ -60,10 +58,7 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       const errBody = await response.text();
       console.error('Groq API error:', response.status, errBody);
-      return new Response(JSON.stringify({ error: `Groq API error: ${response.status}` }), {
-        status: 502,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      throw new HttpError(502, `Groq API error: ${response.status}`);
     }
 
     const ai = await response.json();
@@ -71,22 +66,12 @@ Deno.serve(async (req) => {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       console.error('No JSON in Groq response:', text);
-      return new Response(JSON.stringify({ error: 'Could not parse AI response' }), {
-        status: 502,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      throw new HttpError(502, 'Could not parse AI response');
     }
 
     const product = JSON.parse(jsonMatch[0]);
-
-    return new Response(JSON.stringify({ ...product, barcode }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ ...product, barcode: typeof barcode === 'string' ? barcode : null });
   } catch (err) {
-    console.error('identify-product error:', err);
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return toErrorResponse(err);
   }
 });

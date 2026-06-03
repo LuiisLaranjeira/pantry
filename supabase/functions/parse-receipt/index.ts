@@ -1,7 +1,9 @@
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { requireUser } from '../_shared/auth.ts';
+import { corsHeaders, HttpError, jsonResponse, toErrorResponse } from '../_shared/http.ts';
+import { enforceRateLimit } from '../_shared/rate_limit.ts';
+import { detectImageMime, validateBase64Image, validateText } from '../_shared/validation.ts';
+
+const RATE_LIMIT = { windowMs: 60_000, max: 20 };
 
 const PARSE_PROMPT = (input: string) => `
 STEP 1 — DETECT LANGUAGE AND FORMAT:
@@ -104,7 +106,7 @@ function stripSavingsPrefix(name: string): string {
 }
 
 async function logScan(params: {
-  userId: string | null;
+  userId: string;
   mode: 'text' | 'image';
   success: boolean;
   store?: string | null;
@@ -141,38 +143,37 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  try {
-    const { image, text } = await req.json();
+  let userId: string | null = null;
+  let useTextMode = false;
+  let receiptText: string | null = null;
 
-    if (!image && !text) {
-      return new Response(JSON.stringify({ error: 'No image or text provided' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+  try {
+    const user = await requireUser(req);
+    userId = user.id;
+    await enforceRateLimit(user.id, 'parse-receipt', RATE_LIMIT);
+
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      throw new HttpError(400, 'Invalid JSON body');
     }
+
+    const { image, text } = body as { image?: unknown; text?: unknown };
+    if (!image && !text) {
+      throw new HttpError(400, 'No image or text provided');
+    }
+
+    useTextMode = typeof text === 'string' && text.trim().length > 0;
+    const validatedImage = useTextMode ? null : validateBase64Image(image);
+    const validatedText = useTextMode ? validateText(text) : null;
+    if (useTextMode) receiptText = validatedText;
 
     const apiKey = Deno.env.get('GROQ_API_KEY');
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'GROQ_API_KEY not configured' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      throw new HttpError(500, 'GROQ_API_KEY not configured');
     }
 
     // Text mode: on-device OCR (dev build) → fast text model, no image transfer.
     // Image mode: Expo Go fallback → vision model.
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const jwt = authHeader.replace('Bearer ', '');
-    let userId: string | null = null;
-    try {
-      const payload = JSON.parse(atob(jwt.split('.')[1]));
-      userId = payload.sub ?? null;
-    } catch {
-      /* anonymous or invalid token */
-    }
-
-    const useTextMode = typeof text === 'string' && text.trim().length > 0;
-
     const messages = useTextMode
       ? [
           {
@@ -182,7 +183,7 @@ Deno.serve(async (req) => {
           },
           {
             role: 'user' as const,
-            content: PARSE_PROMPT(`OCR TEXT:\n${text}`),
+            content: PARSE_PROMPT(`OCR TEXT:\n${validatedText}`),
           },
         ]
       : [
@@ -192,7 +193,7 @@ Deno.serve(async (req) => {
               {
                 type: 'image_url',
                 image_url: {
-                  url: `data:${atob(image.slice(0, 16)).startsWith('\x89PNG') ? 'image/png' : 'image/jpeg'};base64,${image}`,
+                  url: `data:${detectImageMime(validatedImage!)};base64,${validatedImage}`,
                 },
               },
               {
@@ -223,16 +224,13 @@ Deno.serve(async (req) => {
       const errBody = await response.text();
       console.error('Groq API error:', response.status, errBody);
       await logScan({
-        userId,
+        userId: user.id,
         mode: useTextMode ? 'text' : 'image',
         success: false,
-        ocrText: useTextMode ? text : null,
+        ocrText: receiptText,
         errorMessage: `Groq API error: ${response.status}`,
       });
-      return new Response(JSON.stringify({ error: `Groq API error: ${response.status}` }), {
-        status: 502,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      throw new HttpError(502, `Groq API error: ${response.status}`);
     }
 
     const ai = await response.json();
@@ -245,40 +243,46 @@ Deno.serve(async (req) => {
     } catch {
       console.error('Failed to parse Groq response:', content);
       await logScan({
-        userId,
+        userId: user.id,
         mode: useTextMode ? 'text' : 'image',
         success: false,
-        ocrText: useTextMode ? text : null,
+        ocrText: receiptText,
         errorMessage: 'Could not parse AI response',
       });
-      return new Response(JSON.stringify({ error: 'Could not parse AI response' }), {
-        status: 502,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      throw new HttpError(502, 'Could not parse AI response');
     }
 
     const rawItems = Array.isArray(parsed.items) ? parsed.items : [];
     const items = rawItems
+      // deno-lint-ignore no-explicit-any
       .map((item: any) => ({ ...item, name: stripSavingsPrefix(String(item.name ?? '')) }))
+      // deno-lint-ignore no-explicit-any
       .filter((item: any) => item.name.trim().length > 0);
 
     await logScan({
-      userId,
+      userId: user.id,
       mode: useTextMode ? 'text' : 'image',
       success: true,
       store: parsed.store ?? null,
       items,
-      ocrText: useTextMode ? text : null,
+      ocrText: receiptText,
     });
 
-    return new Response(JSON.stringify({ store: parsed.store ?? null, items }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ store: parsed.store ?? null, items });
   } catch (err) {
-    console.error('parse-receipt error:', err);
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    if (userId && !(err instanceof HttpError && err.status === 429)) {
+      // Best-effort: record failed attempts (skip rate-limit 429 to avoid
+      // self-reinforcing noise).
+      await logScan({
+        userId,
+        mode: useTextMode ? 'text' : 'image',
+        success: false,
+        ocrText: receiptText,
+        errorMessage: err instanceof Error ? err.message : String(err),
+      }).catch(() => {
+        // ignore — already in an error path
+      });
+    }
+    return toErrorResponse(err);
   }
 });
