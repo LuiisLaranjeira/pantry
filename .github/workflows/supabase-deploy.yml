@@ -4,11 +4,12 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-    paths:
-      - 'supabase/migrations/**'
-      - 'supabase/functions/**'
-      - 'supabase/config.toml'
-      - '.github/workflows/supabase-deploy.yml'
+  # No `paths` filter on purpose: `supabase db push` and `supabase
+  # functions deploy` are both idempotent, so a no-op run on a
+  # JS-only release is cheaper than the alternative — a tag-push
+  # silently skipping the deploy because GitHub's paths-vs-tags
+  # semantics interact poorly (paths is evaluated against commits
+  # since the previous tag, which is fuzzy in their docs).
 
 concurrency:
   group: supabase-deploy-${{ github.ref }}
