@@ -166,7 +166,95 @@ selects the right environment based on the trigger (branch vs tag).
 - Sentry DSNs are project-public — safe to bundle — but rotating the
   project is the only mitigation if it's being abused.
 
-## 7. Decommissioning pantry2
+## 7. Store-content checklist (Phase 8)
+
+Everything content-side that the two stores require. Code-side support
+already shipped: in-app account deletion (Profile → Account → "Delete
+account"), Privacy / Terms links wired via
+`EXPO_PUBLIC_PRIVACY_POLICY_URL` / `EXPO_PUBLIC_TERMS_URL`.
+
+### Host the privacy policy + terms
+
+1. Edit `docs/PRIVACY.md` and `docs/TERMS.md`. Replace every bracketed
+   placeholder. Get sign-off from whoever publishes the product (legal
+   review recommended if you operate commercially).
+2. Render to HTML and host at a stable URL each. Anything works —
+   GitHub Pages, Notion public page, a static page on your own
+   domain — as long as the URL doesn't change between releases.
+3. Set both URLs as env vars for every EAS profile:
+   ```sh
+   eas env:create --environment production EXPO_PUBLIC_PRIVACY_POLICY_URL=https://...
+   eas env:create --environment production EXPO_PUBLIC_TERMS_URL=https://...
+   # Repeat for development and preview.
+   ```
+4. App Store Connect → App Information → Privacy Policy URL.
+5. Google Play Console → Policy → App content → Data safety form
+   (also requires the URL).
+
+### App Store Connect
+
+| Section                   | Value                                                                  |
+| ------------------------- | ---------------------------------------------------------------------- |
+| Category                  | Productivity (primary) / Food & Drink (secondary)                      |
+| Age rating                | 4+ — no restricted content                                             |
+| Content rights            | Confirm you have the right to all content shipped in the binary        |
+| Demo account              | Email + password for a pre-seeded household (see "Demo account" below) |
+| Sign-in required          | Yes — provide the demo account so review can sign in                   |
+| Privacy Policy URL        | From "Host the privacy policy" step 2                                  |
+| Marketing URL             | Optional                                                               |
+| Support URL               | Required — use the same support email as TERMS.md                      |
+| App Privacy data report   | See the data table in PRIVACY.md; tick what matches                    |
+
+### Google Play Console
+
+| Section                   | Value                                                                  |
+| ------------------------- | ---------------------------------------------------------------------- |
+| Category                  | Productivity                                                           |
+| Content rating            | Run the IARC questionnaire (no violence/etc → "Everyone")             |
+| Data safety               | Mirror PRIVACY.md — declare exactly what you collect and share         |
+| Privacy Policy URL        | From "Host the privacy policy" step 2                                  |
+| Target audience           | 13+ (matches TERMS.md)                                                 |
+| Account deletion          | App Bundle → Account deletion — paste a link to in-app instructions or |
+|                           | the same hosted page. The in-app flow is also required and shipped.    |
+| Test account              | Same demo account                                                      |
+
+### Demo account
+
+Both stores will reject a sign-in-gated app if you don't give the
+reviewer a working account.
+
+1. Sign up as `pantry-reviewer@example.com` (or similar) in the prod
+   environment.
+2. Create a household called "Demo household".
+3. Add ~8 pantry items spanning low / out-of-stock / normal so the
+   reviewer can exercise the Pantry tab.
+4. Add one completed shopping list with prices so the reviewer can see
+   the Profile spending chart populated.
+5. Note the email + password in the App Store Connect / Play Console
+   review notes. Rotate the password after each release if you're
+   paranoid (the reviewer doesn't need persistent access).
+
+### Screenshots
+
+EAS Build doesn't produce these — capture from a real device or a
+simulator running the production binary. Required sizes:
+
+| Device                         | Resolution           | Screens to capture                                |
+| ------------------------------ | -------------------- | ------------------------------------------------- |
+| iPhone 6.7" (iPhone 15 Pro Max)| 1290 × 2796          | Pantry, Shopping, Scan, Profile                   |
+| iPhone 6.5" (iPhone 11 Pro Max)| 1242 × 2688          | Same set                                          |
+| iPhone 5.5" (iPhone 8 Plus)    | 1242 × 2208          | Same set (Apple still requires this)              |
+| iPad 12.9" (Pro)               | 2048 × 2732          | Same set                                          |
+| Android phone                  | 1080 × 1920 minimum  | Same set                                          |
+| Android 7-inch tablet          | 1080 × 1920 minimum  | Same set                                          |
+| Android 10-inch tablet         | 1920 × 1200 minimum  | Same set                                          |
+
+Tip: build a "preview" variant with the demo account already seeded so
+your screenshots show populated state. Frame in
+[xframe](https://xframe.app) or similar to add device chrome if you
+want polish.
+
+## 8. Decommissioning pantry2
 
 Once `pantry-prod` is live and pantry2 traffic is zero:
 
