@@ -32,3 +32,44 @@ jobs:
 
       - name: Test
         run: npm test -- --ci
+
+  rls:
+    name: RLS test suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start local Supabase
+        run: supabase start
+
+      - name: Capture local Supabase keys
+        run: |
+          status=$(supabase status --output env)
+          url=$(echo "$status" | awk -F= '/^API_URL=/{print $2}' | tr -d '"')
+          anon=$(echo "$status" | awk -F= '/^ANON_KEY=/{print $2}' | tr -d '"')
+          service=$(echo "$status" | awk -F= '/^SERVICE_ROLE_KEY=/{print $2}' | tr -d '"')
+          {
+            echo "SUPABASE_URL=$url"
+            echo "SUPABASE_ANON_KEY=$anon"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$service"
+          } >> "$GITHUB_ENV"
+
+      - name: Run RLS tests
+        run: npm run test:rls
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup || true

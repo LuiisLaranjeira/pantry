@@ -48,3 +48,6 @@ yarn-error.*
 # Supabase CLI cache
 supabase/.temp/
 supabase/.branches/
+
+# Submit credentials (Google Play service account JSON)
+google-play-service-account.json
