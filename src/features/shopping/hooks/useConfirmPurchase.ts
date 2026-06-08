@@ -31,14 +31,15 @@ export function useConfirmPurchase(householdId: string | null) {
           itemId: item.id,
           barcode: manualBarcode(),
           name: item.name,
+          unit_price: item.unit_price,
         }));
-        const rows = itemsWithBarcodes.map(({ barcode, name }) => ({
+        const rows = itemsWithBarcodes.map(({ barcode, name, unit_price }) => ({
           barcode,
           name,
           brand: null,
           category: null,
           package_unit: null,
-          unit_price: null,
+          unit_price,
           country: null,
         }));
         const products = await productRepo.upsertMany(rows);

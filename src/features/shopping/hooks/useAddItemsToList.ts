@@ -23,19 +23,7 @@ export function useAddItemsToList(householdId: string | null) {
       if (!householdId) throw new AppError('not_found', 'No household.');
       if (items.length === 0) throw new AppError('validation', 'No items provided.');
 
-      let list = await shoppingRepo.getActiveList(householdId);
-      if (!list) {
-        const id = uuid();
-        await shoppingRepo.createList({ id, household_id: householdId });
-        list = {
-          id,
-          household_id: householdId,
-          status: 'active',
-          total_spent: null,
-          created_at: new Date().toISOString(),
-          completed_at: null,
-        };
-      }
+      const list = await shoppingRepo.getOrCreateActiveList(householdId, uuid());
 
       const rows: NewShoppingItem[] = items.map((item) => ({
         list_id: list!.id,

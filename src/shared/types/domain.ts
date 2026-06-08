@@ -47,5 +47,5 @@ export interface ShoppingListItem {
   quantity: number;
   unit_price: number | null;
   checked: boolean;
-  product?: { brand: string | null; package_unit: string | null } | null;
+  product?: { brand: string | null; package_unit: string | null; category: string | null } | null;
 }

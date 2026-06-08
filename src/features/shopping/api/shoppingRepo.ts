@@ -3,7 +3,7 @@ import { isAppError, mapSupabaseError } from '@/shared/api/errors';
 import type { ShoppingList, ShoppingListItem } from '@/shared/types/domain';
 
 const ITEM_SELECT =
-  'id, list_id, product_id, name, quantity, unit_price, checked, product:products(brand, package_unit)';
+  'id, list_id, product_id, name, quantity, unit_price, checked, product:products(brand, package_unit, category)';
 
 const LIST_COLUMNS = 'id, household_id, status, total_spent, created_at, completed_at';
 

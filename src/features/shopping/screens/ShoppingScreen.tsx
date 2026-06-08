@@ -3,10 +3,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, SectionList, StyleSheet, View } from 'react-native';
 
 import { useAppState } from '@/app/providers/AppStateProvider';
 import type { AppStackParamList, MainTabsParamList } from '@/app/navigation/types';
+import { CategorySectionHeader } from '@/features/shopping/components/CategorySectionHeader';
 import { ShoppingHeader } from '@/features/shopping/components/ShoppingHeader';
 import { ShoppingListItemRow } from '@/features/shopping/components/ShoppingListItemRow';
 import { ShoppingNoList } from '@/features/shopping/components/ShoppingNoList';
@@ -18,6 +19,7 @@ import { useDeleteActiveList } from '@/features/shopping/hooks/useDeleteActiveLi
 import { useDeleteShoppingItem } from '@/features/shopping/hooks/useDeleteShoppingItem';
 import { useShoppingHistory } from '@/features/shopping/hooks/useShoppingHistory';
 import { useShoppingItems } from '@/features/shopping/hooks/useShoppingItems';
+import { useShoppingListSync } from '@/features/shopping/hooks/useShoppingListSync';
 import { useStartList } from '@/features/shopping/hooks/useStartList';
 import { useToggleItemChecked } from '@/features/shopping/hooks/useToggleItemChecked';
 import { useUpdateShoppingItem } from '@/features/shopping/hooks/useUpdateShoppingItem';
@@ -31,6 +33,35 @@ type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabsParamList, 'Shopping'>,
   NativeStackScreenProps<AppStackParamList>
 >;
+
+type Section = { title: string; data: ShoppingListItem[] };
+
+function groupSections(items: ShoppingListItem[]): Section[] {
+  const unchecked = items.filter((i) => !i.checked);
+  const checked = items.filter((i) => i.checked);
+
+  const byCategory = new Map<string, ShoppingListItem[]>();
+  for (const item of unchecked) {
+    const key = item.product?.category ?? 'Other';
+    const bucket = byCategory.get(key) ?? [];
+    bucket.push(item);
+    byCategory.set(key, bucket);
+  }
+
+  const sections: Section[] = [...byCategory.keys()]
+    .sort((a, b) => {
+      if (a === 'Other') return 1;
+      if (b === 'Other') return -1;
+      return a.localeCompare(b);
+    })
+    .map((title) => ({ title, data: byCategory.get(title)! }));
+
+  if (checked.length > 0) {
+    sections.push({ title: 'In cart', data: checked });
+  }
+
+  return sections;
+}
 
 const EMPTY_PRODUCT: PartialProduct = {
   barcode: '',
@@ -61,6 +92,8 @@ export function ShoppingScreen({ navigation }: Props) {
   const confirmPurchase = useConfirmPurchase(householdId);
   const addItem = useAddItemFromManual(householdId);
 
+  useShoppingListSync(activeList.data?.id, householdId);
+
   useFocusEffect(
     useCallback(() => {
       activeList.refetch();
@@ -78,6 +111,7 @@ export function ShoppingScreen({ navigation }: Props) {
         .reduce((sum, i) => sum + (i.unit_price ?? 0) * i.quantity, 0),
     [checkedItems],
   );
+  const sections = useMemo(() => groupSections(itemList), [itemList]);
 
   const editProduct = useMemo<PartialProduct | null>(
     () =>
@@ -204,10 +238,11 @@ export function ShoppingScreen({ navigation }: Props) {
 
       {checkedCount > 0 && <TotalBar checkedCount={checkedCount} runningTotal={runningTotal} />}
 
-      <FlatList
-        data={itemList}
+      <SectionList
+        sections={sections}
         keyExtractor={(i) => i.id}
-        contentContainerStyle={itemList.length === 0 ? styles.emptyContainer : undefined}
+        contentContainerStyle={sections.length === 0 ? styles.emptyContainer : undefined}
+        renderSectionHeader={({ section }) => <CategorySectionHeader title={section.title} />}
         renderItem={({ item }) => (
           <ShoppingListItemRow
             item={item}
