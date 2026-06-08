@@ -127,9 +127,8 @@ describe('RLS invariants', () => {
         .delete()
         .eq('household_id', bob.householdId)
         .eq('user_id', bob.userId);
-      // RLS denies silently (zero rows touched, no error). Either
-      // outcome is acceptable; what matters is the row survives.
-      expect(error).toBeNull();
+      // RLS may deny silently (null error, zero rows touched) or return
+      // an explicit error — both are valid. What matters is the row survives.
       const { data: rows } = await admin
         .from('household_users')
         .select('user_id')
