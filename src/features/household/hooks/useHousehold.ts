@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { householdRepo } from '@/features/household/api/householdRepo';
@@ -15,7 +16,7 @@ export interface HouseholdWithCount {
 }
 
 export function useHousehold(householdId: string | null) {
-  return useQuery<HouseholdWithCount>({
+  const query = useQuery<HouseholdWithCount>({
     queryKey: householdKeys.detail(householdId),
     enabled: !!householdId,
     queryFn: async () => {
@@ -24,10 +25,19 @@ export function useHousehold(householdId: string | null) {
         householdRepo.getById(id),
         householdRepo.memberCount(id),
       ]);
-      if (household.country) {
-        await AsyncStorage.setItem(STORAGE_KEYS.householdCountry, household.country);
-      }
       return { ...household, member_count: count };
     },
   });
+
+  // Persist country to AsyncStorage so barcode/scan features can read
+  // it without an additional network call. Runs only when country changes,
+  // not on every refetch.
+  const country = query.data?.country;
+  useEffect(() => {
+    if (country) {
+      AsyncStorage.setItem(STORAGE_KEYS.householdCountry, country);
+    }
+  }, [country]);
+
+  return query;
 }

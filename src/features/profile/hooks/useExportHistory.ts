@@ -17,7 +17,17 @@ export function useExportHistory(householdId: string | null) {
         throw new AppError('not_found', 'No completed shopping lists to export.');
       }
 
-      const items = await shoppingRepo.itemsByListIds(lists.map((l) => l.id));
+      // Chunk list IDs to avoid hitting Supabase's URL length limit with
+      // large histories. 200 IDs per request is safely within the limit.
+      const CHUNK = 200;
+      const allIds = lists.map((l) => l.id);
+      const items = (
+        await Promise.all(
+          Array.from({ length: Math.ceil(allIds.length / CHUNK) }, (_, i) =>
+            shoppingRepo.itemsByListIds(allIds.slice(i * CHUNK, (i + 1) * CHUNK)),
+          ),
+        )
+      ).flat();
       const itemsByList = new Map<string, typeof items>();
       for (const item of items) {
         const bucket = itemsByList.get(item.list_id) ?? [];
