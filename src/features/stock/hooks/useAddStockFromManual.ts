@@ -17,10 +17,14 @@ export function useAddStockFromManual(householdId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ product, quantity }: Input) => {
+    mutationFn: async ({ product, quantity, unitPrice }: Input) => {
       if (!householdId) throw new AppError('not_found', 'No household.');
       const barcode = product.barcode || manualBarcode();
-      const saved = await productRepo.upsert({ ...product, barcode });
+      const saved = await productRepo.upsert({
+        ...product,
+        barcode,
+        unit_price: unitPrice ?? product.unit_price,
+      });
       const matches = await stockRepo.getByProductIds(householdId, [saved.id]);
       const existing = matches[0];
 

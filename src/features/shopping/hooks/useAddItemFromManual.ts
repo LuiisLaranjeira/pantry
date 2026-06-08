@@ -42,7 +42,7 @@ export function useAddItemFromManual(householdId: string | null) {
         name: saved.name,
         quantity,
         unit_price: unitPrice,
-        checked: true,
+        checked: false,
       });
 
       return { listId: list.id };

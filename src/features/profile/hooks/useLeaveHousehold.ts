@@ -15,7 +15,11 @@ export function useLeaveHousehold(householdId: string | null) {
       const session = await authRepo.getSession();
       if (!session) throw new AppError('auth', 'Not signed in.');
       await householdRepo.removeMember(householdId, session.user.id);
-      await AsyncStorage.multiRemove([STORAGE_KEYS.householdId, STORAGE_KEYS.householdName]);
+      await AsyncStorage.multiRemove([
+        STORAGE_KEYS.householdId,
+        STORAGE_KEYS.householdName,
+        STORAGE_KEYS.householdCountry,
+      ]);
     },
     onSuccess: () => {
       refresh();
