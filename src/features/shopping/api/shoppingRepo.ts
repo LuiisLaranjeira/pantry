@@ -1,5 +1,5 @@
 import { supabase } from '@/shared/api/supabaseClient';
-import { mapSupabaseError } from '@/shared/api/errors';
+import { isAppError, mapSupabaseError } from '@/shared/api/errors';
 import type { ShoppingList, ShoppingListItem } from '@/shared/types/domain';
 
 const ITEM_SELECT =
@@ -38,6 +38,29 @@ export const shoppingRepo = {
       .from('shopping_lists')
       .insert({ id: input.id, household_id: input.household_id });
     if (error) throw mapSupabaseError(error, 'Could not create shopping list.');
+  },
+
+  async getOrCreateActiveList(householdId: string, newId: string): Promise<ShoppingList> {
+    const existing = await shoppingRepo.getActiveList(householdId);
+    if (existing) return existing;
+    try {
+      await shoppingRepo.createList({ id: newId, household_id: householdId });
+      return {
+        id: newId,
+        household_id: householdId,
+        status: 'active',
+        total_spent: null,
+        created_at: new Date().toISOString(),
+        completed_at: null,
+      };
+    } catch (err) {
+      if (isAppError(err) && err.code === 'conflict') {
+        // A concurrent call created the list between our check and insert.
+        const retried = await shoppingRepo.getActiveList(householdId);
+        if (retried) return retried;
+      }
+      throw err;
+    }
   },
 
   async listItems(listId: string): Promise<ShoppingListItem[]> {

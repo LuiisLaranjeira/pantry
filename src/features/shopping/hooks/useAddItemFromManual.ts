@@ -22,19 +22,7 @@ export function useAddItemFromManual(householdId: string | null) {
       const barcode = product.barcode || manualBarcode();
       const saved = await productRepo.upsert({ ...product, barcode });
 
-      let list = await shoppingRepo.getActiveList(householdId);
-      if (!list) {
-        const id = uuid();
-        await shoppingRepo.createList({ id, household_id: householdId });
-        list = {
-          id,
-          household_id: householdId,
-          status: 'active',
-          total_spent: null,
-          created_at: new Date().toISOString(),
-          completed_at: null,
-        };
-      }
+      const list = await shoppingRepo.getOrCreateActiveList(householdId, uuid());
 
       await shoppingRepo.addItem({
         list_id: list.id,

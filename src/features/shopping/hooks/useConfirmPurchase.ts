@@ -27,9 +27,14 @@ export function useConfirmPurchase(householdId: string | null) {
       const resolvedIds = new Map<string, string>();
       const manualItems = checkedItems.filter((i) => !i.product_id);
       if (manualItems.length > 0) {
-        const rows = manualItems.map((item) => ({
+        const itemsWithBarcodes = manualItems.map((item) => ({
+          itemId: item.id,
           barcode: manualBarcode(),
           name: item.name,
+        }));
+        const rows = itemsWithBarcodes.map(({ barcode, name }) => ({
+          barcode,
+          name,
           brand: null,
           category: null,
           package_unit: null,
@@ -37,7 +42,11 @@ export function useConfirmPurchase(householdId: string | null) {
           country: null,
         }));
         const products = await productRepo.upsertMany(rows);
-        products.forEach((p, idx) => resolvedIds.set(manualItems[idx].id, p.id));
+        const productIdByBarcode = new Map(products.map((p) => [p.barcode, p.id]));
+        for (const { itemId, barcode } of itemsWithBarcodes) {
+          const productId = productIdByBarcode.get(barcode);
+          if (productId) resolvedIds.set(itemId, productId);
+        }
       }
 
       // 2. Resolve product IDs for every checked item.

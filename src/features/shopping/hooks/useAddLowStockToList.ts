@@ -24,19 +24,7 @@ export function useAddLowStockToList(householdId: string | null) {
       if (!householdId) throw new AppError('not_found', 'No household.');
       if (candidates.length === 0) return { listId: null, added: 0 };
 
-      let list = await shoppingRepo.getActiveList(householdId);
-      if (!list) {
-        const id = uuid();
-        await shoppingRepo.createList({ id, household_id: householdId });
-        list = {
-          id,
-          household_id: householdId,
-          status: 'active',
-          total_spent: null,
-          created_at: new Date().toISOString(),
-          completed_at: null,
-        };
-      }
+      const list = await shoppingRepo.getOrCreateActiveList(householdId, uuid());
 
       const existing =
         dedupBy === 'name'
