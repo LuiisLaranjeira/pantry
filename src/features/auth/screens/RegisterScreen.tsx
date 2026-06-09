@@ -31,6 +31,13 @@ export function RegisterScreen({ navigation }: Props) {
     signUp.mutate(
       { email, password },
       {
+        onSuccess: () => {
+          Alert.alert(
+            'Check your email',
+            `We sent a confirmation link to ${email}. Open it to activate your account, then sign in.`,
+            [{ text: 'Go to sign in', onPress: () => navigation.navigate('Login', { email }) }],
+          );
+        },
         onError: (err) => {
           const message = isAppError(err) ? err.message : 'Something went wrong. Try again.';
           Alert.alert('Registration failed', message);

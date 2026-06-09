@@ -19,8 +19,8 @@ import { Button, TextField, useTheme } from '@/shared/ui';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
-export function LoginScreen({ navigation }: Props) {
-  const [email, setEmail] = useState('');
+export function LoginScreen({ navigation, route }: Props) {
+  const [email, setEmail] = useState(route.params?.email ?? '');
   const [password, setPassword] = useState('');
   const signIn = useSignIn();
   const signInWithGoogle = useSignInWithGoogle();
