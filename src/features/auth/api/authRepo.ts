@@ -19,7 +19,13 @@ export const authRepo = {
   },
 
   async signUp(email: string, password: string): Promise<void> {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const variant = process.env.EXPO_PUBLIC_APP_VARIANT ?? 'development';
+    const scheme = variant === 'production' ? 'pantry' : `pantry.${variant}`;
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${scheme}://` },
+    });
     if (error) throw new AppError('auth', error.message, error);
   },
 

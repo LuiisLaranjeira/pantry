@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { AuthStackParamList } from '@/app/navigation/types';
@@ -64,120 +65,127 @@ export function LoginScreen({ navigation, route }: Props) {
   const isPending = signIn.isPending || signInWithGoogle.isPending;
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.bg.default }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.inner}>
-          <Text
-            style={[
-              styles.title,
-              { color: colors.primary.base, fontWeight: typography.weight.bold },
-            ]}
-          >
-            Pantry
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.text.muted }]}>
-            Household stock manager
-          </Text>
-
-          <TextField
-            containerStyle={styles.field}
-            placeholder="Email"
-            value={email}
-            onChangeText={(t) => {
-              setEmail(t);
-              setEmailError(null);
-            }}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            editable={!isPending}
-            returnKeyType="next"
-            onSubmitEditing={() => passwordRef.current?.focus()}
-            error={emailError}
-          />
-          <TextField
-            containerStyle={styles.field}
-            placeholder="Password"
-            value={password}
-            onChangeText={(t) => {
-              setPassword(t);
-              setPasswordError(null);
-            }}
-            secureTextEntry={!showPassword}
-            editable={!isPending}
-            returnKeyType="done"
-            onSubmitEditing={handleLogin}
-            inputRef={passwordRef}
-            error={passwordError}
-            rightElement={
-              <TouchableOpacity
-                onPress={() => setShowPassword((v) => !v)}
-                style={styles.eyeBtn}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color={colors.text.muted}
-                />
-              </TouchableOpacity>
-            }
-          />
-
-          <Button
-            label="Sign in"
-            onPress={handleLogin}
-            loading={signIn.isPending}
-            disabled={!email || !password || isPending}
-            size="lg"
-            fullWidth
-            style={styles.button}
-          />
-
-          <View style={styles.dividerRow}>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border.subtle }]} />
-            <Text style={[styles.dividerText, { color: colors.text.muted }]}>or</Text>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border.subtle }]} />
-          </View>
-
-          <TouchableOpacity
-            style={[
-              styles.googleButton,
-              { borderColor: colors.border.default, backgroundColor: colors.bg.surface },
-              isPending && styles.dimmed,
-            ]}
-            onPress={handleGoogleSignIn}
-            disabled={isPending}
-            activeOpacity={0.7}
-          >
-            {signInWithGoogle.isPending ? (
-              <Text style={[styles.googleLabel, { color: colors.text.secondary }]}>
-                Signing in…
-              </Text>
-            ) : (
-              <>
-                <Ionicons name="logo-google" size={18} color="#4285F4" style={styles.googleIcon} />
-                <Text style={[styles.googleLabel, { color: colors.text.primary }]}>
-                  Continue with Google
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.link}
-            onPress={() => navigation.navigate('Register')}
-            disabled={isPending}
-          >
-            <Text style={[styles.linkText, { color: colors.primary.base }]}>
-              No account? Register
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.bg.default }}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.inner}>
+            <Text
+              style={[
+                styles.title,
+                { color: colors.primary.base, fontWeight: typography.weight.bold },
+              ]}
+            >
+              Pantry
             </Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+            <Text style={[styles.subtitle, { color: colors.text.muted }]}>
+              Household stock manager
+            </Text>
+
+            <TextField
+              containerStyle={styles.field}
+              placeholder="Email"
+              value={email}
+              onChangeText={(t) => {
+                setEmail(t);
+                setEmailError(null);
+              }}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              editable={!isPending}
+              returnKeyType="next"
+              onSubmitEditing={() => passwordRef.current?.focus()}
+              error={emailError}
+            />
+            <TextField
+              containerStyle={styles.field}
+              placeholder="Password"
+              value={password}
+              onChangeText={(t) => {
+                setPassword(t);
+                setPasswordError(null);
+              }}
+              secureTextEntry={!showPassword}
+              editable={!isPending}
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
+              inputRef={passwordRef}
+              error={passwordError}
+              rightElement={
+                <TouchableOpacity
+                  onPress={() => setShowPassword((v) => !v)}
+                  style={styles.eyeBtn}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={20}
+                    color={colors.text.muted}
+                  />
+                </TouchableOpacity>
+              }
+            />
+
+            <Button
+              label="Sign in"
+              onPress={handleLogin}
+              loading={signIn.isPending}
+              disabled={!email || !password || isPending}
+              size="lg"
+              fullWidth
+              style={styles.button}
+            />
+
+            <View style={styles.dividerRow}>
+              <View style={[styles.dividerLine, { backgroundColor: colors.border.subtle }]} />
+              <Text style={[styles.dividerText, { color: colors.text.muted }]}>or</Text>
+              <View style={[styles.dividerLine, { backgroundColor: colors.border.subtle }]} />
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.googleButton,
+                { borderColor: colors.border.default, backgroundColor: colors.bg.surface },
+                isPending && styles.dimmed,
+              ]}
+              onPress={handleGoogleSignIn}
+              disabled={isPending}
+              activeOpacity={0.7}
+            >
+              {signInWithGoogle.isPending ? (
+                <Text style={[styles.googleLabel, { color: colors.text.secondary }]}>
+                  Signing in…
+                </Text>
+              ) : (
+                <>
+                  <Ionicons
+                    name="logo-google"
+                    size={18}
+                    color="#4285F4"
+                    style={styles.googleIcon}
+                  />
+                  <Text style={[styles.googleLabel, { color: colors.text.primary }]}>
+                    Continue with Google
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.link}
+              onPress={() => navigation.navigate('Register')}
+              disabled={isPending}
+            >
+              <Text style={[styles.linkText, { color: colors.primary.base }]}>
+                No account? Register
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

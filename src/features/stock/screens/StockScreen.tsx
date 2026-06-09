@@ -12,6 +12,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppState } from '@/app/providers/AppStateProvider';
 import type { AppStackParamList, MainTabsParamList } from '@/app/navigation/types';
@@ -79,11 +80,12 @@ export function StockScreen({ navigation, route }: Props) {
     navigation.setOptions({ tabBarBadge: activeLowCount > 0 ? activeLowCount : undefined });
   }, [activeLowCount, navigation]);
 
+  const { isStale: isStockStale, refetch: refetchStock } = stockList;
   useFocusEffect(
     useCallback(() => {
       setBannerDismissed(false);
-      stockList.refetch();
-    }, [stockList]),
+      if (isStockStale) refetchStock();
+    }, [isStockStale, refetchStock]),
   );
 
   useEffect(() => {
@@ -199,7 +201,10 @@ export function StockScreen({ navigation, route }: Props) {
 
   if (stockList.isError) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.bg.default }]}>
+      <SafeAreaView
+        edges={['top']}
+        style={[styles.container, { backgroundColor: colors.bg.default }]}
+      >
         <View style={styles.errorContainer}>
           <EmptyState
             icon="cloud-offline-outline"
@@ -208,7 +213,7 @@ export function StockScreen({ navigation, route }: Props) {
           />
           <Button label="Retry" onPress={() => stockList.refetch()} style={styles.retryBtn} />
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -232,7 +237,10 @@ export function StockScreen({ navigation, route }: Props) {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.default }]}>
+    <SafeAreaView
+      edges={['top']}
+      style={[styles.container, { backgroundColor: colors.bg.default }]}
+    >
       <StockSearchBar
         value={search}
         onChangeText={setSearch}
@@ -323,7 +331,7 @@ export function StockScreen({ navigation, route }: Props) {
         onConfirm={onManualConfirm}
         onCancel={() => setShowManual(false)}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

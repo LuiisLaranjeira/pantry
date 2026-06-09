@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
+import { Linking } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 
 import { authRepo } from '@/features/auth/api/authRepo';
@@ -29,7 +30,25 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setSession(s);
       setIsLoading(false);
     });
-    return () => subscription.unsubscribe();
+
+    // Handle deep links for email confirmation (pantry.preview://?code=xxx).
+    // exchangeOAuthCode triggers onAuthStateChange which updates the session.
+    const handleUrl = (url: string) => {
+      try {
+        const code = new URL(url).searchParams.get('code');
+        if (code) authRepo.exchangeOAuthCode(code).catch(() => {});
+      } catch {}
+    };
+
+    Linking.getInitialURL().then((url) => {
+      if (url) handleUrl(url);
+    });
+    const linkingSub = Linking.addEventListener('url', ({ url }) => handleUrl(url));
+
+    return () => {
+      subscription.unsubscribe();
+      linkingSub.remove();
+    };
   }, []);
 
   return <AuthContext.Provider value={{ session, isLoading }}>{children}</AuthContext.Provider>;

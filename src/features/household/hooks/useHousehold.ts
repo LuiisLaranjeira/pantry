@@ -19,14 +19,7 @@ export function useHousehold(householdId: string | null) {
   const query = useQuery<HouseholdWithCount>({
     queryKey: householdKeys.detail(householdId),
     enabled: !!householdId,
-    queryFn: async () => {
-      const id = householdId!;
-      const [household, count] = await Promise.all([
-        householdRepo.getById(id),
-        householdRepo.memberCount(id),
-      ]);
-      return { ...household, member_count: count };
-    },
+    queryFn: () => householdRepo.getByIdWithMemberCount(householdId!),
   });
 
   // Persist country to AsyncStorage so barcode/scan features can read

@@ -1,4 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ErrorBoundary } from '@/app/providers/ErrorBoundary';
 import { RootNavigator } from '@/app/navigation/RootNavigator';
@@ -15,20 +16,22 @@ initSentry();
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <ErrorBoundary>
-        <OTAUpdates />
-        <QueryProvider>
-          <AuthProvider>
-            <HouseholdProvider>
-              <AppStateProvider>
-                <RootNavigator />
-                <StatusBar style="auto" />
-              </AppStateProvider>
-            </HouseholdProvider>
-          </AuthProvider>
-        </QueryProvider>
-      </ErrorBoundary>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <ErrorBoundary>
+          <OTAUpdates />
+          <QueryProvider>
+            <AuthProvider>
+              <HouseholdProvider>
+                <AppStateProvider>
+                  <RootNavigator />
+                  <StatusBar style="auto" />
+                </AppStateProvider>
+              </HouseholdProvider>
+            </AuthProvider>
+          </QueryProvider>
+        </ErrorBoundary>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

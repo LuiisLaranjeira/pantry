@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useCreateHousehold } from '@/features/household/hooks/useCreateHousehold';
 import { useJoinHousehold } from '@/features/household/hooks/useJoinHousehold';
@@ -61,108 +62,110 @@ export function HouseholdScreen() {
   const isJoining = joinMutation.isPending;
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.bg.default }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <View style={styles.inner}>
-        {mode === 'choose' && (
-          <>
-            <Text
-              style={[
-                styles.title,
-                { color: colors.primary.base, fontWeight: typography.weight.bold },
-              ]}
-            >
-              Set up your household
-            </Text>
-            <Text style={[styles.subtitle, { color: colors.text.subtle }]}>
-              Create a new household or join an existing one with an invite code.
-            </Text>
-            <Button
-              label="Create household"
-              onPress={() => setMode('create')}
-              size="lg"
-              fullWidth
-              style={styles.button}
-            />
-            <Button
-              label="Join with invite code"
-              onPress={() => setMode('join')}
-              variant="secondary"
-              size="lg"
-              fullWidth
-              style={styles.button}
-            />
-          </>
-        )}
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.bg.default }}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.inner}>
+          {mode === 'choose' && (
+            <>
+              <Text
+                style={[
+                  styles.title,
+                  { color: colors.primary.base, fontWeight: typography.weight.bold },
+                ]}
+              >
+                Set up your household
+              </Text>
+              <Text style={[styles.subtitle, { color: colors.text.subtle }]}>
+                Create a new household or join an existing one with an invite code.
+              </Text>
+              <Button
+                label="Create household"
+                onPress={() => setMode('create')}
+                size="lg"
+                fullWidth
+                style={styles.button}
+              />
+              <Button
+                label="Join with invite code"
+                onPress={() => setMode('join')}
+                variant="secondary"
+                size="lg"
+                fullWidth
+                style={styles.button}
+              />
+            </>
+          )}
 
-        {mode === 'create' && (
-          <>
-            <Text
-              style={[
-                styles.title,
-                { color: colors.primary.base, fontWeight: typography.weight.bold },
-              ]}
-            >
-              Name your household
-            </Text>
-            <TextField
-              containerStyle={styles.field}
-              placeholder="e.g. The Smiths"
-              value={householdName}
-              onChangeText={setHouseholdName}
-              editable={!isCreating}
-            />
-            <Button
-              label="Create"
-              onPress={handleCreate}
-              loading={isCreating}
-              disabled={!householdName.trim()}
-              size="lg"
-              fullWidth
-              style={styles.button}
-            />
-            <TouchableOpacity style={styles.link} onPress={() => setMode('choose')}>
-              <Text style={[styles.linkText, { color: colors.primary.base }]}>Back</Text>
-            </TouchableOpacity>
-          </>
-        )}
+          {mode === 'create' && (
+            <>
+              <Text
+                style={[
+                  styles.title,
+                  { color: colors.primary.base, fontWeight: typography.weight.bold },
+                ]}
+              >
+                Name your household
+              </Text>
+              <TextField
+                containerStyle={styles.field}
+                placeholder="e.g. The Smiths"
+                value={householdName}
+                onChangeText={setHouseholdName}
+                editable={!isCreating}
+              />
+              <Button
+                label="Create"
+                onPress={handleCreate}
+                loading={isCreating}
+                disabled={!householdName.trim()}
+                size="lg"
+                fullWidth
+                style={styles.button}
+              />
+              <TouchableOpacity style={styles.link} onPress={() => setMode('choose')}>
+                <Text style={[styles.linkText, { color: colors.primary.base }]}>Back</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
-        {mode === 'join' && (
-          <>
-            <Text
-              style={[
-                styles.title,
-                { color: colors.primary.base, fontWeight: typography.weight.bold },
-              ]}
-            >
-              Enter invite code
-            </Text>
-            <TextField
-              containerStyle={styles.field}
-              placeholder="6-character code"
-              value={inviteCode}
-              onChangeText={setInviteCode}
-              autoCapitalize="none"
-              editable={!isJoining}
-            />
-            <Button
-              label="Join"
-              onPress={handleJoin}
-              loading={isJoining}
-              disabled={!inviteCode.trim()}
-              size="lg"
-              fullWidth
-              style={styles.button}
-            />
-            <TouchableOpacity style={styles.link} onPress={() => setMode('choose')}>
-              <Text style={[styles.linkText, { color: colors.primary.base }]}>Back</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
-    </KeyboardAvoidingView>
+          {mode === 'join' && (
+            <>
+              <Text
+                style={[
+                  styles.title,
+                  { color: colors.primary.base, fontWeight: typography.weight.bold },
+                ]}
+              >
+                Enter invite code
+              </Text>
+              <TextField
+                containerStyle={styles.field}
+                placeholder="6-character code"
+                value={inviteCode}
+                onChangeText={setInviteCode}
+                autoCapitalize="none"
+                editable={!isJoining}
+              />
+              <Button
+                label="Join"
+                onPress={handleJoin}
+                loading={isJoining}
+                disabled={!inviteCode.trim()}
+                size="lg"
+                fullWidth
+                style={styles.button}
+              />
+              <TouchableOpacity style={styles.link} onPress={() => setMode('choose')}>
+                <Text style={[styles.linkText, { color: colors.primary.base }]}>Back</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

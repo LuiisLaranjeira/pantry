@@ -12,6 +12,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppState } from '@/app/providers/AppStateProvider';
 import type { AppStackParamList, MainTabsParamList } from '@/app/navigation/types';
@@ -93,11 +94,13 @@ export function ShoppingScreen({ navigation }: Props) {
 
   useShoppingListSync(activeList.data?.id, householdId);
 
+  const { isStale: isActiveListStale, refetch: refetchActiveList } = activeList;
+  const { isStale: isHistoryStale, refetch: refetchHistory } = history;
   useFocusEffect(
     useCallback(() => {
-      activeList.refetch();
-      history.refetch();
-    }, [activeList, history]),
+      if (isActiveListStale) refetchActiveList();
+      if (isHistoryStale) refetchHistory();
+    }, [isActiveListStale, refetchActiveList, isHistoryStale, refetchHistory]),
   );
 
   const itemList = useMemo(() => items.data ?? [], [items.data]);
@@ -245,7 +248,10 @@ export function ShoppingScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.default }]}>
+    <SafeAreaView
+      edges={['top']}
+      style={[styles.container, { backgroundColor: colors.bg.default }]}
+    >
       <ShoppingHeader
         checkedCount={checkedCount}
         isPending={confirmPurchase.isPending}
@@ -330,7 +336,7 @@ export function ShoppingScreen({ navigation }: Props) {
         onConfirm={handleSaveEdit}
         onCancel={() => setEditingItem(null)}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

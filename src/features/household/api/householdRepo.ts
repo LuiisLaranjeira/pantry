@@ -30,6 +30,19 @@ export const householdRepo = {
     return data as Household;
   },
 
+  async getByIdWithMemberCount(id: string): Promise<Household & { member_count: number }> {
+    const { data, error } = await supabase
+      .from('households')
+      .select(`${HOUSEHOLD_COLUMNS}, household_users(count)`)
+      .eq('id', id)
+      .single();
+    if (error || !data) throw mapSupabaseError(error, 'Could not load household.');
+    const { household_users, ...household } = data as typeof data & {
+      household_users: { count: number }[];
+    };
+    return { ...(household as Household), member_count: household_users?.[0]?.count ?? 0 };
+  },
+
   /**
    * Atomically creates a household and adds the caller as the first member.
    * Backed by the create_household() RPC (SECURITY DEFINER) so the two

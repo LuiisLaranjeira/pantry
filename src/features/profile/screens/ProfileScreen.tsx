@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppState } from '@/app/providers/AppStateProvider';
 import { env } from '@/config/env';
@@ -147,57 +148,59 @@ export function ProfileScreen() {
     );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <HouseholdSection household={hh} />
+    <SafeAreaView edges={['top']} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <HouseholdSection household={hh} />
 
-      <SpendingSection monthlyData={monthlySpending.data ?? []} />
+        <SpendingSection monthlyData={monthlySpending.data ?? []} />
 
-      <PreferencesSection
-        country={hh?.country}
-        groupedView={hh?.grouped_view ?? false}
-        onCountryPress={() => setCountryPickerVisible(true)}
-        onGroupedViewChange={(value) => onUpdatePrefs({ grouped_view: value })}
-      />
+        <PreferencesSection
+          country={hh?.country}
+          groupedView={hh?.grouped_view ?? false}
+          onCountryPress={() => setCountryPickerVisible(true)}
+          onGroupedViewChange={(value) => onUpdatePrefs({ grouped_view: value })}
+        />
 
-      <ActivitySection log={recentActivity.data ?? []} />
+        <ActivitySection log={recentActivity.data ?? []} />
 
-      <ExportSection
-        isExportingStock={exportStock.isPending}
-        isExportingHistory={exportHistory.isPending}
-        onExportStock={onExportStock}
-        onExportHistory={onExportHistory}
-      />
+        <ExportSection
+          isExportingStock={exportStock.isPending}
+          isExportingHistory={exportHistory.isPending}
+          onExportStock={onExportStock}
+          onExportHistory={onExportHistory}
+        />
 
-      <NotificationsSection
-        notificationsOn={notificationsOn}
-        isCheckingLowStock={checkLowStock.isPending}
-        onToggle={onToggleNotifs}
-        onCheckNow={onCheckLowStock}
-      />
+        <NotificationsSection
+          notificationsOn={notificationsOn}
+          isCheckingLowStock={checkLowStock.isPending}
+          onToggle={onToggleNotifs}
+          onCheckNow={onCheckLowStock}
+        />
 
-      <AccountSection
-        email={userEmail.data}
-        isDeletingAccount={deleteAccount.isPending}
-        onLogout={onLogout}
-        onLeaveHousehold={onLeaveHousehold}
-        onDeleteAccount={onDeleteAccount}
-      />
+        <AccountSection
+          email={userEmail.data}
+          isDeletingAccount={deleteAccount.isPending}
+          onLogout={onLogout}
+          onLeaveHousehold={onLeaveHousehold}
+          onDeleteAccount={onDeleteAccount}
+        />
 
-      <LegalSection
-        privacyUrl={env.EXPO_PUBLIC_PRIVACY_POLICY_URL}
-        termsUrl={env.EXPO_PUBLIC_TERMS_URL}
-        onOpenUrl={(url) => Linking.openURL(url).catch(() => undefined)}
-      />
+        <LegalSection
+          privacyUrl={env.EXPO_PUBLIC_PRIVACY_POLICY_URL}
+          termsUrl={env.EXPO_PUBLIC_TERMS_URL}
+          onOpenUrl={(url) => Linking.openURL(url).catch(() => undefined)}
+        />
 
-      <CountryPicker
-        visible={countryPickerVisible}
-        selectedCode={hh?.country ?? null}
-        onSelect={(code) => {
-          onUpdatePrefs({ country: code });
-          setCountryPickerVisible(false);
-        }}
-        onClose={() => setCountryPickerVisible(false)}
-      />
-    </ScrollView>
+        <CountryPicker
+          visible={countryPickerVisible}
+          selectedCode={hh?.country ?? null}
+          onSelect={(code) => {
+            onUpdatePrefs({ country: code });
+            setCountryPickerVisible(false);
+          }}
+          onClose={() => setCountryPickerVisible(false)}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 }

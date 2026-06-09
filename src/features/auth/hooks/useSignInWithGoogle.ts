@@ -13,10 +13,12 @@ export function useSignInWithGoogle() {
   const { refresh } = useAppState();
   return useMutation({
     mutationFn: async () => {
-      // makeRedirectUri() without a scheme arg reads the app's scheme
-      // from app.config.ts, so dev/preview/production each get their
-      // own URL (pantry.development://, pantry.preview://, pantry://).
-      const redirectTo = makeRedirectUri();
+      // Explicitly pass the scheme so makeRedirectUri() doesn't fall back
+      // to localhost in EAS builds where auto-detection can fail.
+      // Mirrors the appScheme() logic in app.config.ts.
+      const variant = process.env.EXPO_PUBLIC_APP_VARIANT ?? 'development';
+      const scheme = variant === 'production' ? 'pantry' : `pantry.${variant}`;
+      const redirectTo = makeRedirectUri({ scheme });
       const url = await authRepo.getGoogleOAuthUrl(redirectTo);
 
       const result = await WebBrowser.openAuthSessionAsync(url, redirectTo);
