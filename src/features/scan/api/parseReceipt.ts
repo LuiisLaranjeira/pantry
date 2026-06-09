@@ -13,7 +13,7 @@ export interface ParsedReceipt {
   items: ReceiptItem[];
 }
 
-export async function parseReceipt(text: string): Promise<ParsedReceipt> {
+export async function parseReceipt(imageBase64: string): Promise<ParsedReceipt> {
   const functionsUrl = env.EXPO_PUBLIC_SUPABASE_FUNCTIONS_URL;
   if (!functionsUrl) {
     throw new AppError('validation', 'EXPO_PUBLIC_SUPABASE_FUNCTIONS_URL is not configured.');
@@ -30,7 +30,7 @@ export async function parseReceipt(text: string): Promise<ParsedReceipt> {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ image: imageBase64 }),
     });
   } catch (err) {
     throw new AppError('network', 'Could not reach the parse-receipt service.', err);

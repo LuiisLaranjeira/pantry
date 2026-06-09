@@ -1,4 +1,4 @@
-import TextRecognition from '@react-native-ml-kit/text-recognition';
+import { readAsStringAsync } from 'expo-file-system';
 import { useMutation } from '@tanstack/react-query';
 
 import { parseReceipt, type ParsedReceipt } from '@/features/scan/api/parseReceipt';
@@ -7,15 +7,13 @@ import { AppError } from '@/shared/api/errors';
 export function useParseReceipt() {
   return useMutation<ParsedReceipt, Error, string>({
     mutationFn: async (photoUri) => {
-      let recognized: { text?: string };
+      let imageBase64: string;
       try {
-        recognized = await TextRecognition.recognize(photoUri);
+        imageBase64 = await readAsStringAsync(photoUri, { encoding: 'base64' });
       } catch (err) {
-        throw new AppError('unknown', 'Could not read text from photo.', err);
+        throw new AppError('unknown', 'Could not read photo.', err);
       }
-      const text = recognized.text?.trim();
-      if (!text) throw new AppError('not_found', 'No text found on receipt.');
-      return parseReceipt(text);
+      return parseReceipt(imageBase64);
     },
   });
 }
