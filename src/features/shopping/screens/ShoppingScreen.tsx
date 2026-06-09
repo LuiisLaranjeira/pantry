@@ -2,8 +2,16 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, SectionList, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  SectionList,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 import { useAppState } from '@/app/providers/AppStateProvider';
 import type { AppStackParamList, MainTabsParamList } from '@/app/navigation/types';
@@ -27,6 +35,7 @@ import { isAppError } from '@/shared/api/errors';
 import { ProductConfirmSheet, type Destination } from '@/shared/components/ProductConfirmSheet';
 import { formatCurrency } from '@/shared/lib/format';
 import { Button, EmptyState, useTheme } from '@/shared/ui';
+import { EMPTY_PRODUCT } from '@/shared/types/domain';
 import type { PartialProduct, ShoppingListItem } from '@/shared/types/domain';
 
 type Props = CompositeScreenProps<
@@ -63,16 +72,6 @@ function groupSections(items: ShoppingListItem[]): Section[] {
   return sections;
 }
 
-const EMPTY_PRODUCT: PartialProduct = {
-  barcode: '',
-  name: '',
-  brand: null,
-  category: null,
-  package_unit: null,
-  unit_price: null,
-  country: null,
-};
-
 export function ShoppingScreen({ navigation }: Props) {
   const { householdId } = useAppState();
   const { colors } = useTheme();
@@ -104,6 +103,7 @@ export function ShoppingScreen({ navigation }: Props) {
   const itemList = useMemo(() => items.data ?? [], [items.data]);
   const checkedItems = useMemo(() => itemList.filter((i) => i.checked), [itemList]);
   const checkedCount = checkedItems.length;
+  const uncheckedCount = itemList.length - checkedCount;
   const runningTotal = useMemo(
     () =>
       checkedItems
@@ -112,6 +112,14 @@ export function ShoppingScreen({ navigation }: Props) {
     [checkedItems],
   );
   const sections = useMemo(() => groupSections(itemList), [itemList]);
+
+  useEffect(() => {
+    if (!activeList.data) {
+      navigation.setOptions({ tabBarBadge: undefined });
+      return;
+    }
+    navigation.setOptions({ tabBarBadge: uncheckedCount > 0 ? uncheckedCount : undefined });
+  }, [uncheckedCount, activeList.data, navigation]);
 
   const editProduct = useMemo<PartialProduct | null>(
     () =>
@@ -132,7 +140,12 @@ export function ShoppingScreen({ navigation }: Props) {
   const handleToggle = (item: ShoppingListItem) =>
     toggleChecked.mutate({ itemId: item.id, checked: !item.checked });
 
-  const handleDelete = (item: ShoppingListItem) => deleteItem.mutate(item.id);
+  const handleDelete = (item: ShoppingListItem) => {
+    Alert.alert('Remove item', `Remove "${item.name}" from the list?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: () => deleteItem.mutate(item.id) },
+    ]);
+  };
 
   const handleAdd = (
     product: PartialProduct,
@@ -212,6 +225,11 @@ export function ShoppingScreen({ navigation }: Props) {
     });
   };
 
+  const handleRefresh = () => {
+    activeList.refetch();
+    items.refetch();
+  };
+
   if (activeList.isPending || history.isPending) {
     return <ActivityIndicator style={styles.loader} color={colors.primary.base} size="large" />;
   }
@@ -238,21 +256,48 @@ export function ShoppingScreen({ navigation }: Props) {
 
       {checkedCount > 0 && <TotalBar checkedCount={checkedCount} runningTotal={runningTotal} />}
 
-      <SectionList
-        sections={sections}
-        keyExtractor={(i) => i.id}
-        contentContainerStyle={sections.length === 0 ? styles.emptyContainer : undefined}
-        renderSectionHeader={({ section }) => <CategorySectionHeader title={section.title} />}
-        renderItem={({ item }) => (
-          <ShoppingListItemRow
-            item={item}
-            onToggleCheck={() => handleToggle(item)}
-            onEdit={() => setEditingItem(item)}
-            onDelete={() => handleDelete(item)}
+      {items.isError ? (
+        <ScrollView
+          style={styles.errorScrollContainer}
+          contentContainerStyle={styles.errorContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={items.isRefetching}
+              onRefresh={() => items.refetch()}
+              tintColor={colors.primary.base}
+            />
+          }
+        >
+          <EmptyState
+            icon="cloud-offline-outline"
+            title="Could not load items"
+            subtitle="Pull down to retry."
           />
-        )}
-        ListEmptyComponent={<EmptyState title="List is empty" subtitle="Tap + to add items." />}
-      />
+        </ScrollView>
+      ) : (
+        <SectionList
+          sections={sections}
+          keyExtractor={(i) => i.id}
+          contentContainerStyle={sections.length === 0 ? styles.emptyContainer : undefined}
+          renderSectionHeader={({ section }) => <CategorySectionHeader title={section.title} />}
+          renderItem={({ item }) => (
+            <ShoppingListItemRow
+              item={item}
+              onToggleCheck={() => handleToggle(item)}
+              onEdit={() => setEditingItem(item)}
+              onDelete={() => handleDelete(item)}
+            />
+          )}
+          ListEmptyComponent={<EmptyState title="List is empty" subtitle="Tap + to add items." />}
+          refreshControl={
+            <RefreshControl
+              refreshing={activeList.isRefetching || items.isRefetching}
+              onRefresh={handleRefresh}
+              tintColor={colors.primary.base}
+            />
+          }
+        />
+      )}
 
       <View style={styles.bottomBar}>
         <Button
@@ -293,6 +338,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     loader: { flex: 1 },
     container: { flex: 1 },
+    errorScrollContainer: { flex: 1 },
+    errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     bottomBar: {
       flexDirection: 'row',

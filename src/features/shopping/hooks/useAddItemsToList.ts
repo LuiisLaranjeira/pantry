@@ -31,7 +31,7 @@ export function useAddItemsToList(householdId: string | null) {
         name: item.name,
         quantity: item.quantity,
         unit_price: item.unit_price,
-        checked: true,
+        checked: false,
       }));
 
       await shoppingRepo.addItems(rows);

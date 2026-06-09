@@ -1,6 +1,7 @@
 import { env } from '@/config/env';
 import { authRepo } from '@/features/auth/api/authRepo';
 import { AppError } from '@/shared/api/errors';
+import { manualBarcode } from '@/shared/lib/uuid';
 import type { PartialProduct } from '@/shared/types/domain';
 
 interface IdentifyResult {
@@ -45,7 +46,7 @@ export async function identifyProduct(input: {
   if (!data.name) throw new AppError('not_found', 'Could not identify product.');
 
   return {
-    barcode: input.barcode ?? '',
+    barcode: input.barcode ?? manualBarcode(),
     name: data.name,
     brand: data.brand ?? null,
     category: data.category ?? null,

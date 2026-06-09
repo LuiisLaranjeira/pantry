@@ -113,7 +113,17 @@ export function ProfileScreen() {
   const onLeaveHousehold = () =>
     Alert.alert('Leave household', `Leave "${hh?.name}"? You will need an invite code to rejoin.`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Leave', style: 'destructive', onPress: () => leaveHousehold.mutate() },
+      {
+        text: 'Leave',
+        style: 'destructive',
+        onPress: () =>
+          leaveHousehold.mutate(undefined, {
+            onError: (err) => {
+              const msg = isAppError(err) ? err.message : 'Could not leave household.';
+              Alert.alert('Error', msg);
+            },
+          }),
+      },
     ]);
 
   const onDeleteAccount = () =>

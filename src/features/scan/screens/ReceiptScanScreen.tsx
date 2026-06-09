@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -41,7 +41,12 @@ export function ReceiptScanScreen({ navigation }: Props) {
   const [reviewItems, setReviewItems] = useState<ReceiptReviewItem[]>([]);
 
   const cameraRef = useRef<CameraView>(null);
+  const processingRef = useRef(false);
   const flashOpacity = useMemo(() => new Animated.Value(0), []);
+
+  useEffect(() => {
+    if (mode === 'capture') processingRef.current = false;
+  }, [mode]);
 
   const parseReceipt = useParseReceipt();
   const addItems = useAddItemsToList(householdId);
@@ -56,7 +61,8 @@ export function ReceiptScanScreen({ navigation }: Props) {
   };
 
   const takePhoto = async () => {
-    if (!cameraRef.current) return;
+    if (!cameraRef.current || processingRef.current) return;
+    processingRef.current = true;
     triggerFlash();
     setLoadingMessage('Taking photo…');
     setMode('loading');
@@ -70,10 +76,13 @@ export function ReceiptScanScreen({ navigation }: Props) {
     }
 
     if (!photoUri) {
+      // Reset mode before the Alert so processingRef is cleared regardless of
+      // how the Alert is dismissed (button press OR Android back button).
+      setMode('capture');
       Alert.alert(
         'Could not read receipt',
         'Try again with better lighting, keeping the full receipt within the frame.',
-        [{ text: 'Try again', onPress: () => setMode('capture') }],
+        [{ text: 'Try again' }],
       );
       return;
     }
@@ -94,10 +103,11 @@ export function ReceiptScanScreen({ navigation }: Props) {
         setMode('review');
       },
       onError: () => {
+        setMode('capture');
         Alert.alert(
           'Could not read receipt',
           'Try again with better lighting, keeping the full receipt within the frame.',
-          [{ text: 'Try again', onPress: () => setMode('capture') }],
+          [{ text: 'Try again' }],
         );
       },
     });

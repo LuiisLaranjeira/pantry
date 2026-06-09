@@ -1,3 +1,4 @@
+import type { ReactNode, Ref } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import type { StyleProp, TextInputProps, ViewStyle } from 'react-native';
 
@@ -8,6 +9,8 @@ interface Props extends Omit<TextInputProps, 'style'> {
   error?: string | null;
   containerStyle?: StyleProp<ViewStyle>;
   inputStyle?: TextInputProps['style'];
+  rightElement?: ReactNode;
+  inputRef?: Ref<TextInput>;
 }
 
 export function TextField({
@@ -16,6 +19,8 @@ export function TextField({
   containerStyle,
   inputStyle,
   editable = true,
+  rightElement,
+  inputRef,
   ...rest
 }: Props) {
   const { colors, radius, typography } = useTheme();
@@ -32,22 +37,26 @@ export function TextField({
           {label}
         </Text>
       )}
-      <TextInput
-        editable={editable}
-        placeholderTextColor={colors.text.placeholder}
+      <View
         style={[
-          styles.input,
+          styles.inputRow,
           {
             backgroundColor: colors.bg.surface,
             borderColor: error ? colors.danger.base : colors.border.default,
             borderRadius: radius.lg,
-            color: colors.text.primary,
           },
           !editable && styles.disabled,
-          inputStyle,
         ]}
-        {...rest}
-      />
+      >
+        <TextInput
+          ref={inputRef}
+          editable={editable}
+          placeholderTextColor={colors.text.placeholder}
+          style={[styles.input, { color: colors.text.primary }, inputStyle]}
+          {...rest}
+        />
+        {rightElement}
+      </View>
       {error && <Text style={[styles.error, { color: colors.danger.base }]}>{error}</Text>}
     </View>
   );
@@ -56,8 +65,14 @@ export function TextField({
 const styles = StyleSheet.create({
   wrapper: { width: '100%' },
   label: { fontSize: 13, marginBottom: 6 },
-  input: {
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
+    overflow: 'hidden',
+  },
+  input: {
+    flex: 1,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,

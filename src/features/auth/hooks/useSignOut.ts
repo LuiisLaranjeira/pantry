@@ -9,8 +9,8 @@ export function useSignOut() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      await AsyncStorage.multiRemove([STORAGE_KEYS.householdId, STORAGE_KEYS.householdName]);
       await authRepo.signOut();
+      await AsyncStorage.multiRemove([STORAGE_KEYS.householdId, STORAGE_KEYS.householdName]);
     },
     onSuccess: async () => {
       // Drop any cached data for the signed-out user so the next sign-in

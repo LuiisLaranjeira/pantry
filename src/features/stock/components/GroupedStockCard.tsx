@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -8,35 +9,57 @@ interface Props {
   group: GroupedStockItem;
   onAdjust: (delta: number) => void;
   onLongPress: () => void;
+  onCancelDelete: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
 }
 
-export function GroupedStockCard({ group, onAdjust, onLongPress }: Props) {
+export function GroupedStockCard({
+  group,
+  onAdjust,
+  onLongPress,
+  onCancelDelete,
+  onDelete,
+  isDeleting,
+}: Props) {
   const { colors, elevation } = useTheme();
   const styles = useMemo(() => makeStyles(colors, elevation), [colors, elevation]);
+
   return (
-    <TouchableOpacity style={styles.card} onLongPress={onLongPress} activeOpacity={0.8}>
+    <TouchableOpacity
+      style={[styles.card, isDeleting && styles.cardDeleting]}
+      onLongPress={onLongPress}
+      onPress={isDeleting ? onCancelDelete : undefined}
+      activeOpacity={0.8}
+    >
       <View style={styles.info}>
-        <Text style={styles.name}>{group.name}</Text>
+        <Text style={[styles.name, isDeleting && styles.textDeleting]}>{group.name}</Text>
         {(group.package_unit || group.category) && (
-          <Text style={styles.meta}>
+          <Text style={[styles.meta, isDeleting && styles.textDeleting]}>
             {[group.package_unit, group.category].filter(Boolean).join(' · ')}
           </Text>
         )}
       </View>
-      {group.quantity <= group.low_stock_threshold && (
+      {!isDeleting && group.quantity <= group.low_stock_threshold && (
         <View style={styles.lowBadge}>
           <Text style={styles.lowBadgeText}>Low</Text>
         </View>
       )}
-      <View style={styles.qtyControls}>
-        <TouchableOpacity style={styles.qtyBtn} onPress={() => onAdjust(-1)}>
-          <Text style={styles.qtyBtnText}>−</Text>
+      {isDeleting ? (
+        <TouchableOpacity style={styles.trashBtn} onPress={onDelete}>
+          <Ionicons name="trash-outline" size={20} color={colors.text.inverse} />
         </TouchableOpacity>
-        <Text style={styles.qtyValue}>{group.quantity}</Text>
-        <TouchableOpacity style={styles.qtyBtn} onPress={() => onAdjust(1)}>
-          <Text style={styles.qtyBtnText}>+</Text>
-        </TouchableOpacity>
-      </View>
+      ) : (
+        <View style={styles.qtyControls}>
+          <TouchableOpacity style={styles.qtyBtn} onPress={() => onAdjust(-1)}>
+            <Text style={styles.qtyBtnText}>−</Text>
+          </TouchableOpacity>
+          <Text style={styles.qtyValue}>{group.quantity}</Text>
+          <TouchableOpacity style={styles.qtyBtn} onPress={() => onAdjust(1)}>
+            <Text style={styles.qtyBtnText}>+</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
@@ -57,9 +80,15 @@ function makeStyles(
       alignItems: 'center',
       ...elevation.card,
     },
+    cardDeleting: {
+      backgroundColor: colors.danger.soft,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.danger.base,
+    },
     info: { flex: 1 },
     name: { fontSize: 15, fontWeight: '600', color: colors.text.primary },
     meta: { fontSize: 12, color: colors.text.muted, marginTop: 2 },
+    textDeleting: { color: colors.danger.base },
     lowBadge: {
       backgroundColor: colors.warning.soft,
       borderRadius: 6,
@@ -68,6 +97,14 @@ function makeStyles(
       marginRight: 10,
     },
     lowBadgeText: { fontSize: 11, fontWeight: '700', color: colors.warning.text },
+    trashBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.danger.base,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     qtyControls: { flexDirection: 'row', alignItems: 'center', gap: 10 },
     qtyBtn: {
       width: 32,

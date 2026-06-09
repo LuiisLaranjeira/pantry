@@ -3,7 +3,15 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { useAppState } from '@/app/providers/AppStateProvider';
 import type { AppStackParamList, MainTabsParamList } from '@/app/navigation/types';
@@ -26,6 +34,7 @@ import { useStockList } from '@/features/stock/hooks/useStockList';
 import { isAppError } from '@/shared/api/errors';
 import { ProductConfirmSheet, type Destination } from '@/shared/components/ProductConfirmSheet';
 import { Button, EmptyState, useTheme } from '@/shared/ui';
+import { EMPTY_PRODUCT } from '@/shared/types/domain';
 import type { GroupedStockItem, PartialProduct, StockItem } from '@/shared/types/domain';
 
 type Props = CompositeScreenProps<
@@ -33,21 +42,12 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<AppStackParamList>
 >;
 
-const EMPTY_PRODUCT: PartialProduct = {
-  barcode: '',
-  name: '',
-  brand: null,
-  category: null,
-  package_unit: null,
-  unit_price: null,
-  country: null,
-};
-
 export function StockScreen({ navigation, route }: Props) {
   const { householdId } = useAppState();
   const { colors } = useTheme();
   const [search, setSearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingGroupKey, setDeletingGroupKey] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
@@ -74,6 +74,10 @@ export function StockScreen({ navigation, route }: Props) {
     [groupedItems],
   );
   const activeLowCount = groupedView ? lowGroups.length : lowStockItems.length;
+
+  useEffect(() => {
+    navigation.setOptions({ tabBarBadge: activeLowCount > 0 ? activeLowCount : undefined });
+  }, [activeLowCount, navigation]);
 
   useFocusEffect(
     useCallback(() => {
@@ -114,11 +118,14 @@ export function StockScreen({ navigation, route }: Props) {
 
   const onDeleteGroup = (group: GroupedStockItem) => {
     Alert.alert('Remove from pantry', `Remove all "${group.name}" from your pantry?`, [
-      { text: 'Cancel', style: 'cancel' },
+      { text: 'Cancel', style: 'cancel', onPress: () => setDeletingGroupKey(null) },
       {
         text: 'Remove',
         style: 'destructive',
-        onPress: () => deleteGroup.mutate(group.members.map((m) => m.id)),
+        onPress: () => {
+          setDeletingGroupKey(null);
+          deleteGroup.mutate(group.members.map((m) => m.id));
+        },
       },
     ]);
   };
@@ -190,6 +197,21 @@ export function StockScreen({ navigation, route }: Props) {
     return <ActivityIndicator style={styles.loader} color={colors.primary.base} size="large" />;
   }
 
+  if (stockList.isError) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.bg.default }]}>
+        <View style={styles.errorContainer}>
+          <EmptyState
+            icon="cloud-offline-outline"
+            title="Could not load pantry"
+            subtitle="Check your connection and try again."
+          />
+          <Button label="Retry" onPress={() => stockList.refetch()} style={styles.retryBtn} />
+        </View>
+      </View>
+    );
+  }
+
   const query = search.trim().toLowerCase();
   const filtered = query
     ? items.filter(
@@ -204,6 +226,10 @@ export function StockScreen({ navigation, route }: Props) {
           g.name.toLowerCase().includes(query) || (g.category ?? '').toLowerCase().includes(query),
       )
     : groupedItems;
+
+  const listHint = (
+    <Text style={[styles.listHint, { color: colors.text.muted }]}>Hold an item to remove it</Text>
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.default }]}>
@@ -225,12 +251,24 @@ export function StockScreen({ navigation, route }: Props) {
         <FlatList
           data={filteredGrouped}
           keyExtractor={(g) => g.key}
-          contentContainerStyle={filteredGrouped.length === 0 ? styles.emptyContainer : undefined}
+          refreshControl={
+            <RefreshControl
+              refreshing={stockList.isRefetching}
+              onRefresh={() => stockList.refetch()}
+              tintColor={colors.primary.base}
+            />
+          }
+          contentContainerStyle={
+            filteredGrouped.length === 0 ? styles.emptyContainer : styles.listContent
+          }
           renderItem={({ item: group }) => (
             <GroupedStockCard
               group={group}
               onAdjust={(delta) => onAdjustGroup(group, delta)}
-              onLongPress={() => onDeleteGroup(group)}
+              onLongPress={() => setDeletingGroupKey(group.key)}
+              onCancelDelete={() => setDeletingGroupKey(null)}
+              onDelete={() => onDeleteGroup(group)}
+              isDeleting={deletingGroupKey === group.key}
             />
           )}
           ListEmptyComponent={
@@ -239,12 +277,20 @@ export function StockScreen({ navigation, route }: Props) {
               subtitle={query ? `Nothing matches "${search}".` : 'Scan a barcode or add manually.'}
             />
           }
+          ListFooterComponent={filteredGrouped.length > 0 ? listHint : null}
         />
       ) : (
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={filtered.length === 0 ? styles.emptyContainer : undefined}
+          refreshControl={
+            <RefreshControl
+              refreshing={stockList.isRefetching}
+              onRefresh={() => stockList.refetch()}
+              tintColor={colors.primary.base}
+            />
+          }
+          contentContainerStyle={filtered.length === 0 ? styles.emptyContainer : styles.listContent}
           renderItem={({ item }) => (
             <StockListItem
               item={item}
@@ -262,6 +308,7 @@ export function StockScreen({ navigation, route }: Props) {
               subtitle={query ? `Nothing matches "${search}".` : 'Scan a barcode or add manually.'}
             />
           }
+          ListFooterComponent={filtered.length > 0 ? listHint : null}
         />
       )}
 
@@ -283,7 +330,11 @@ export function StockScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   loader: { flex: 1 },
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  retryBtn: { marginTop: 8 },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  listContent: { paddingBottom: 96 },
+  listHint: { textAlign: 'center', fontSize: 12, paddingVertical: 12 },
   fabRow: {
     position: 'absolute',
     bottom: 28,

@@ -11,6 +11,16 @@ export interface Product {
 
 export type PartialProduct = Omit<Product, 'id'>;
 
+export const EMPTY_PRODUCT: PartialProduct = {
+  barcode: '',
+  name: '',
+  brand: null,
+  category: null,
+  package_unit: null,
+  unit_price: null,
+  country: null,
+};
+
 export interface StockItem {
   id: string;
   household_id: string;

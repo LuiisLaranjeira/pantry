@@ -15,7 +15,7 @@ export async function lookupBarcode(
 
     // generic_name is preferred for grouping (brand-agnostic); fall back to
     // localized then English then any.
-    const localName = country ? p[`product_name_${country}`] : null;
+    const localName = country ? p[`product_name_${country.toLowerCase()}`] : null;
     const name =
       p.generic_name?.trim() ||
       localName?.trim() ||
