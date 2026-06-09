@@ -1,4 +1,6 @@
 import type { Session, Subscription } from '@supabase/supabase-js';
+import { makeRedirectUri } from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
 
 import { supabase } from '@/shared/api/supabaseClient';
 import { AppError, mapSupabaseError } from '@/shared/api/errors';
@@ -43,6 +45,29 @@ export const authRepo = {
           : 'Could not delete account.';
       throw new AppError('unknown', message, error);
     }
+  },
+
+  async signInWithGoogle(): Promise<Session> {
+    const redirectTo = makeRedirectUri({ scheme: 'pantry' });
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo, skipBrowserRedirect: true },
+    });
+    if (error || !data.url) throw mapSupabaseError(error, 'Could not start Google sign-in.');
+
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    if (result.type !== 'success') throw new AppError('auth', 'Google sign-in was cancelled.');
+
+    const url = new URL(result.url);
+    const code = url.searchParams.get('code');
+    if (!code) throw new AppError('auth', 'No authorisation code in Google sign-in response.');
+
+    const { data: session, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
+    if (sessionError || !session.session) {
+      throw mapSupabaseError(sessionError, 'Could not complete Google sign-in.');
+    }
+    return session.session;
   },
 
   onAuthStateChange(callback: (session: Session | null) => void): Subscription {

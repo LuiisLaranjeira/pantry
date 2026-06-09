@@ -49,8 +49,10 @@ const config: ExpoConfig = {
     permissions: ['android.permission.CAMERA', 'android.permission.RECORD_AUDIO'],
     package: bundleIdentifier(),
   },
+  scheme: 'pantry',
   plugins: [
     'expo-font',
+    'expo-web-browser',
     [
       'expo-camera',
       {
