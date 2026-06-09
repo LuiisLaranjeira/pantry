@@ -7,21 +7,40 @@ import { authRepo } from '@/features/auth/api/authRepo';
 import { AppError } from '@/shared/api/errors';
 
 // Dismisses the browser session on iOS after the OAuth redirect lands.
-// Called at module level so it fires whenever this hook is imported,
-// regardless of which screen uses it.
 WebBrowser.maybeCompleteAuthSession();
 
 export function useSignInWithGoogle() {
   const { refresh } = useAppState();
   return useMutation({
     mutationFn: async () => {
-      const redirectTo = makeRedirectUri({ scheme: 'pantry' });
+      // makeRedirectUri() without a scheme arg reads the app's scheme
+      // from app.config.ts, so dev/preview/production each get their
+      // own URL (pantry.development://, pantry.preview://, pantry://).
+      const redirectTo = makeRedirectUri();
       const url = await authRepo.getGoogleOAuthUrl(redirectTo);
 
       const result = await WebBrowser.openAuthSessionAsync(url, redirectTo);
       if (result.type !== 'success') throw new AppError('auth', 'Google sign-in was cancelled.');
 
-      const code = new URL(result.url).searchParams.get('code');
+      const callbackUrl = new URL(result.url);
+
+      // Supabase encodes errors in the redirect URL when the OAuth flow
+      // fails server-side (e.g. duplicate email, access denied).
+      const oauthError = callbackUrl.searchParams.get('error');
+      const oauthErrorDesc = callbackUrl.searchParams.get('error_description');
+      if (oauthError) {
+        const isDuplicateEmail =
+          oauthErrorDesc?.toLowerCase().includes('already') ||
+          oauthErrorDesc?.toLowerCase().includes('registered');
+        throw new AppError(
+          isDuplicateEmail ? 'conflict' : 'auth',
+          isDuplicateEmail
+            ? 'An account with this email already exists. Sign in with email and password instead.'
+            : (oauthErrorDesc ?? 'Google sign-in failed.'),
+        );
+      }
+
+      const code = callbackUrl.searchParams.get('code');
       if (!code) throw new AppError('auth', 'No authorisation code in Google sign-in response.');
 
       return authRepo.exchangeOAuthCode(code);

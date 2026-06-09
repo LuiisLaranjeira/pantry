@@ -13,6 +13,10 @@ function bundleIdentifier(): string {
   return variant === 'production' ? BASE_BUNDLE : `${BASE_BUNDLE}.${variant}`;
 }
 
+function appScheme(): string {
+  return variant === 'production' ? 'pantry' : `pantry.${variant}`;
+}
+
 function appName(): string {
   if (variant === 'production') return BASE_NAME;
   if (variant === 'preview') return `${BASE_NAME} (Preview)`;
@@ -49,7 +53,7 @@ const config: ExpoConfig = {
     permissions: ['android.permission.CAMERA', 'android.permission.RECORD_AUDIO'],
     package: bundleIdentifier(),
   },
-  scheme: 'pantry',
+  scheme: appScheme(),
   plugins: [
     'expo-font',
     'expo-web-browser',

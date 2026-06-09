@@ -1,15 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type PropsWithChildren,
-} from 'react';
+import { createContext, useCallback, useContext, useEffect, type PropsWithChildren } from 'react';
 
-import { authRepo } from '@/features/auth/api/authRepo';
-import { STORAGE_KEYS } from '@/shared/lib/storageKeys';
+import { useAuthContext } from '@/app/providers/AuthProvider';
+import { useHouseholdContext } from '@/app/providers/HouseholdProvider';
 
 export type AppState = 'loading' | 'auth' | 'household' | 'app';
 
@@ -23,47 +15,52 @@ interface AppStateContextValue {
 const AppStateContext = createContext<AppStateContextValue | null>(null);
 
 export function AppStateProvider({ children }: PropsWithChildren) {
-  const [state, setState] = useState<AppState>('loading');
-  const [householdId, setHouseholdId] = useState<string | null>(null);
-  const [householdName, setHouseholdName] = useState<string | null>(null);
+  const auth = useAuthContext();
+  const household = useHouseholdContext();
 
-  const refresh = useCallback(async () => {
-    const session = await authRepo.getSession();
-    if (!session) {
-      setHouseholdId(null);
-      setHouseholdName(null);
-      setState('auth');
-      return;
-    }
-    const [id, name] = await AsyncStorage.multiGet([
-      STORAGE_KEYS.householdId,
-      STORAGE_KEYS.householdName,
-    ]);
-    setHouseholdId(id[1]);
-    setHouseholdName(name[1]);
-    setState(id[1] ? 'app' : 'household');
-  }, []);
-
+  // Re-read household state whenever the signed-in user changes (sign in,
+  // sign out, account switch). Token refreshes keep the same user.id so
+  // they don't trigger a reload.
+  const userId = auth.session?.user.id ?? null;
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- async initial read of auth/household; setState fires after awaits, not synchronously
-    refresh();
-    const subscription = authRepo.onAuthStateChange(() => {
-      refresh();
-    });
-    return () => subscription.unsubscribe();
-  }, [refresh]);
+    household.reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  const state: AppState =
+    auth.isLoading || household.isLoading
+      ? 'loading'
+      : !auth.session
+        ? 'auth'
+        : !household.householdId
+          ? 'household'
+          : 'app';
+
+  // refresh() re-reads household state from AsyncStorage. Auth transitions
+  // (sign in, sign out, OAuth) are now driven automatically by the
+  // onAuthStateChange subscription in AuthProvider — callers no longer need
+  // refresh() for those cases, but it is kept for backward compatibility and
+  // for household-specific transitions (create, join, leave).
+  const refresh = useCallback(async () => {
+    await household.reload();
+  }, [household]);
 
   return (
-    <AppStateContext.Provider value={{ state, householdId, householdName, refresh }}>
+    <AppStateContext.Provider
+      value={{
+        state,
+        householdId: household.householdId,
+        householdName: household.householdName,
+        refresh,
+      }}
+    >
       {children}
     </AppStateContext.Provider>
   );
 }
 
 export function useAppState(): AppStateContextValue {
-  const value = useContext(AppStateContext);
-  if (!value) {
-    throw new Error('useAppState must be used within AppStateProvider.');
-  }
-  return value;
+  const ctx = useContext(AppStateContext);
+  if (!ctx) throw new Error('useAppState must be used within AppStateProvider.');
+  return ctx;
 }
