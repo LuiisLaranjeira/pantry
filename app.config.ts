@@ -50,6 +50,7 @@ const config: ExpoConfig = {
     package: bundleIdentifier(),
   },
   plugins: [
+    'expo-font',
     [
       'expo-camera',
       {
