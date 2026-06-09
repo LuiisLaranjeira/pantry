@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { shoppingKeys } from '@/features/shopping/api/queryKeys';
 import { supabase } from '@/shared/api/supabaseClient';
+import { logger } from '@/shared/lib/logger';
 
 export function useShoppingListSync(listId: string | null | undefined, householdId: string | null) {
   const queryClient = useQueryClient();
@@ -32,7 +33,11 @@ export function useShoppingListSync(listId: string | null | undefined, household
         },
         () => queryClient.invalidateQueries({ queryKey: shoppingKeys.activeList(householdId) }),
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          logger.warn('Shopping list sync lost connection', { listId });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

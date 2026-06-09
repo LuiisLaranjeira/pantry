@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import {
   Alert,
@@ -17,9 +16,6 @@ import { useSignIn } from '@/features/auth/hooks/useSignIn';
 import { useSignInWithGoogle } from '@/features/auth/hooks/useSignInWithGoogle';
 import { isAppError } from '@/shared/api/errors';
 import { Button, TextField, useTheme } from '@/shared/ui';
-
-// Required on iOS to dismiss the browser after OAuth completes.
-WebBrowser.maybeCompleteAuthSession();
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
   Alert,
@@ -11,6 +12,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { AuthStackParamList } from '@/app/navigation/types';
+import { useSignInWithGoogle } from '@/features/auth/hooks/useSignInWithGoogle';
 import { useSignUp } from '@/features/auth/hooks/useSignUp';
 import { isAppError } from '@/shared/api/errors';
 import { Button, TextField, useTheme } from '@/shared/ui';
@@ -21,6 +23,7 @@ export function RegisterScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const signUp = useSignUp();
+  const signInWithGoogle = useSignInWithGoogle();
   const { colors, typography } = useTheme();
 
   const handleRegister = () => {
@@ -36,7 +39,16 @@ export function RegisterScreen({ navigation }: Props) {
     );
   };
 
-  const isPending = signUp.isPending;
+  const handleGoogleSignIn = () => {
+    signInWithGoogle.mutate(undefined, {
+      onError: (err) => {
+        const message = isAppError(err) ? err.message : 'Google sign-in failed. Try again.';
+        Alert.alert('Google sign-in failed', message);
+      },
+    });
+  };
+
+  const isPending = signUp.isPending || signInWithGoogle.isPending;
 
   return (
     <KeyboardAvoidingView
@@ -45,7 +57,7 @@ export function RegisterScreen({ navigation }: Props) {
     >
       <View style={styles.inner}>
         <Text
-          style={[styles.title, { color: colors.primary.base, fontWeight: typography.weight.bold }]}
+          style={[styles.title, { color: colors.text.primary, fontWeight: typography.weight.bold }]}
         >
           Create account
         </Text>
@@ -69,16 +81,48 @@ export function RegisterScreen({ navigation }: Props) {
         />
 
         <Button
-          label={isPending ? 'Creating account…' : 'Register'}
+          label={signUp.isPending ? 'Creating account…' : 'Register'}
           onPress={handleRegister}
-          loading={isPending}
-          disabled={!email || !password}
+          loading={signUp.isPending}
+          disabled={!email || !password || isPending}
           size="lg"
           fullWidth
           style={styles.button}
         />
 
-        <TouchableOpacity style={styles.link} onPress={() => navigation.navigate('Login')}>
+        <View style={styles.dividerRow}>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border.subtle }]} />
+          <Text style={[styles.dividerText, { color: colors.text.muted }]}>or</Text>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border.subtle }]} />
+        </View>
+
+        <TouchableOpacity
+          style={[
+            styles.googleButton,
+            { borderColor: colors.border.default, backgroundColor: colors.bg.surface },
+            isPending && styles.disabled,
+          ]}
+          onPress={handleGoogleSignIn}
+          disabled={isPending}
+          activeOpacity={0.7}
+        >
+          {signInWithGoogle.isPending ? (
+            <Text style={[styles.googleLabel, { color: colors.text.secondary }]}>Signing in…</Text>
+          ) : (
+            <>
+              <Ionicons name="logo-google" size={18} color="#4285F4" />
+              <Text style={[styles.googleLabel, { color: colors.text.primary }]}>
+                Continue with Google
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.link}
+          onPress={() => navigation.navigate('Login')}
+          disabled={isPending}
+        >
           <Text style={[styles.linkText, { color: colors.primary.base }]}>
             Already have an account? Sign in
           </Text>
@@ -94,6 +138,25 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, marginBottom: 32 },
   field: { marginBottom: 12 },
   button: { marginTop: 8 },
-  link: { marginTop: 20, alignItems: 'center' },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    gap: 12,
+  },
+  dividerLine: { flex: 1, height: 1 },
+  dividerText: { fontSize: 13 },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 13,
+    gap: 10,
+  },
+  googleLabel: { fontSize: 15, fontWeight: '500' },
+  disabled: { opacity: 0.5 },
+  link: { marginTop: 24, alignItems: 'center' },
   linkText: { fontSize: 14 },
 });
