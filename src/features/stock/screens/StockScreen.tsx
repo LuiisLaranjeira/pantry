@@ -80,12 +80,12 @@ export function StockScreen({ navigation, route }: Props) {
     navigation.setOptions({ tabBarBadge: activeLowCount > 0 ? activeLowCount : undefined });
   }, [activeLowCount, navigation]);
 
-  const { isStale: isStockStale, refetch: refetchStock } = stockList;
+  const { refetch: refetchStock } = stockList;
   useFocusEffect(
     useCallback(() => {
       setBannerDismissed(false);
-      if (isStockStale) refetchStock();
-    }, [isStockStale, refetchStock]),
+      refetchStock();
+    }, [refetchStock]),
   );
 
   useEffect(() => {

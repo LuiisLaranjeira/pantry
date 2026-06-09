@@ -2,6 +2,7 @@ import type { Session, Subscription } from '@supabase/supabase-js';
 
 import { supabase } from '@/shared/api/supabaseClient';
 import { AppError, mapSupabaseError } from '@/shared/api/errors';
+import { appScheme } from '@/shared/lib/appScheme';
 
 export const authRepo = {
   async getSession(): Promise<Session | null> {
@@ -19,12 +20,10 @@ export const authRepo = {
   },
 
   async signUp(email: string, password: string): Promise<void> {
-    const variant = process.env.EXPO_PUBLIC_APP_VARIANT ?? 'development';
-    const scheme = variant === 'production' ? 'pantry' : `pantry.${variant}`;
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${scheme}://` },
+      options: { emailRedirectTo: `${appScheme()}://` },
     });
     if (error) throw new AppError('auth', error.message, error);
   },

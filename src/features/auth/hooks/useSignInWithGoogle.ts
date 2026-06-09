@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useAppState } from '@/app/providers/AppStateProvider';
 import { authRepo } from '@/features/auth/api/authRepo';
 import { AppError } from '@/shared/api/errors';
+import { appScheme } from '@/shared/lib/appScheme';
 
 // Dismisses the browser session on iOS after the OAuth redirect lands.
 WebBrowser.maybeCompleteAuthSession();
@@ -13,12 +14,7 @@ export function useSignInWithGoogle() {
   const { refresh } = useAppState();
   return useMutation({
     mutationFn: async () => {
-      // Explicitly pass the scheme so makeRedirectUri() doesn't fall back
-      // to localhost in EAS builds where auto-detection can fail.
-      // Mirrors the appScheme() logic in app.config.ts.
-      const variant = process.env.EXPO_PUBLIC_APP_VARIANT ?? 'development';
-      const scheme = variant === 'production' ? 'pantry' : `pantry.${variant}`;
-      const redirectTo = makeRedirectUri({ scheme });
+      const redirectTo = makeRedirectUri({ scheme: appScheme() });
       const url = await authRepo.getGoogleOAuthUrl(redirectTo);
 
       const result = await WebBrowser.openAuthSessionAsync(url, redirectTo);

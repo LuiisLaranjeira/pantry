@@ -40,7 +40,7 @@ export const householdRepo = {
     const { household_users, ...household } = data as typeof data & {
       household_users: { count: number }[];
     };
-    return { ...(household as Household), member_count: household_users?.[0]?.count ?? 0 };
+    return { ...(household as Household), member_count: Number(household_users?.[0]?.count ?? 0) };
   },
 
   /**

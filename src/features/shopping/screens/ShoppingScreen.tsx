@@ -94,13 +94,13 @@ export function ShoppingScreen({ navigation }: Props) {
 
   useShoppingListSync(activeList.data?.id, householdId);
 
-  const { isStale: isActiveListStale, refetch: refetchActiveList } = activeList;
-  const { isStale: isHistoryStale, refetch: refetchHistory } = history;
+  const { refetch: refetchActiveList } = activeList;
+  const { refetch: refetchHistory } = history;
   useFocusEffect(
     useCallback(() => {
-      if (isActiveListStale) refetchActiveList();
-      if (isHistoryStale) refetchHistory();
-    }, [isActiveListStale, refetchActiveList, isHistoryStale, refetchHistory]),
+      refetchActiveList();
+      refetchHistory();
+    }, [refetchActiveList, refetchHistory]),
   );
 
   const itemList = useMemo(() => items.data ?? [], [items.data]);

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
-import { Linking } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 
 import { authRepo } from '@/features/auth/api/authRepo';
@@ -32,20 +32,34 @@ export function AuthProvider({ children }: PropsWithChildren) {
     });
 
     // Handle deep links for email confirmation (pantry.preview://?code=xxx).
-    // exchangeOAuthCode triggers onAuthStateChange which updates the session.
+    // Google OAuth redirects also carry ?code= but additionally have a ?state=
+    // param — we skip those here since useSignInWithGoogle handles them via
+    // WebBrowser.openAuthSessionAsync, avoiding double-consumption of the
+    // single-use PKCE code.
+    let mounted = true;
     const handleUrl = (url: string) => {
       try {
-        const code = new URL(url).searchParams.get('code');
-        if (code) authRepo.exchangeOAuthCode(code).catch(() => {});
+        const parsed = new URL(url);
+        const code = parsed.searchParams.get('code');
+        const isOAuthCallback = !!parsed.searchParams.get('state');
+        if (code && !isOAuthCallback) {
+          authRepo.exchangeOAuthCode(code).catch(() => {
+            Alert.alert(
+              'Link expired',
+              'This confirmation link is no longer valid. Please sign up again.',
+            );
+          });
+        }
       } catch {}
     };
 
     Linking.getInitialURL().then((url) => {
-      if (url) handleUrl(url);
+      if (mounted && url) handleUrl(url);
     });
     const linkingSub = Linking.addEventListener('url', ({ url }) => handleUrl(url));
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
       linkingSub.remove();
     };
