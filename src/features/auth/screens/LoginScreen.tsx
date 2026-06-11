@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 import type { AuthStackParamList } from '@/app/navigation/types';
 import { validateAuthForm } from '@/features/auth/lib/validation';
@@ -34,6 +35,7 @@ export function LoginScreen({ navigation, route }: Props) {
   const signIn = useSignIn();
   const signInWithGoogle = useSignInWithGoogle();
   const { colors, typography } = useTheme();
+  const { t } = useTranslation();
 
   const handleLogin = () => {
     const trimmed = email.trim();
@@ -46,8 +48,8 @@ export function LoginScreen({ navigation, route }: Props) {
       { email: trimmed, password },
       {
         onError: (err) => {
-          const message = isAppError(err) ? err.message : 'Something went wrong. Try again.';
-          Alert.alert('Login failed', message);
+          const message = isAppError(err) ? err.message : t('login.failedMessage');
+          Alert.alert(t('login.failedTitle'), message);
         },
       },
     );
@@ -56,8 +58,8 @@ export function LoginScreen({ navigation, route }: Props) {
   const handleGoogleSignIn = () => {
     signInWithGoogle.mutate(undefined, {
       onError: (err) => {
-        const message = isAppError(err) ? err.message : 'Google sign-in failed. Try again.';
-        Alert.alert('Google sign-in failed', message);
+        const message = isAppError(err) ? err.message : t('login.googleFailedMessage');
+        Alert.alert(t('login.googleFailedTitle'), message);
       },
     });
   };
@@ -81,12 +83,12 @@ export function LoginScreen({ navigation, route }: Props) {
               Pantry
             </Text>
             <Text style={[styles.subtitle, { color: colors.text.muted }]}>
-              Household stock manager
+              {t('login.subtitle')}
             </Text>
 
             <TextField
               containerStyle={styles.field}
-              placeholder="Email"
+              placeholder={t('login.email')}
               value={email}
               onChangeText={(t) => {
                 setEmail(t);
@@ -101,7 +103,7 @@ export function LoginScreen({ navigation, route }: Props) {
             />
             <TextField
               containerStyle={styles.field}
-              placeholder="Password"
+              placeholder={t('login.password')}
               value={password}
               onChangeText={(t) => {
                 setPassword(t);
@@ -129,7 +131,7 @@ export function LoginScreen({ navigation, route }: Props) {
             />
 
             <Button
-              label="Sign in"
+              label={t('login.signIn')}
               onPress={handleLogin}
               loading={signIn.isPending}
               disabled={!email || !password || isPending}
@@ -140,7 +142,9 @@ export function LoginScreen({ navigation, route }: Props) {
 
             <View style={styles.dividerRow}>
               <View style={[styles.dividerLine, { backgroundColor: colors.border.subtle }]} />
-              <Text style={[styles.dividerText, { color: colors.text.muted }]}>or</Text>
+              <Text style={[styles.dividerText, { color: colors.text.muted }]}>
+                {t('common.or')}
+              </Text>
               <View style={[styles.dividerLine, { backgroundColor: colors.border.subtle }]} />
             </View>
 
@@ -156,7 +160,7 @@ export function LoginScreen({ navigation, route }: Props) {
             >
               {signInWithGoogle.isPending ? (
                 <Text style={[styles.googleLabel, { color: colors.text.secondary }]}>
-                  Signing in…
+                  {t('login.signingIn')}
                 </Text>
               ) : (
                 <>
@@ -167,7 +171,7 @@ export function LoginScreen({ navigation, route }: Props) {
                     style={styles.googleIcon}
                   />
                   <Text style={[styles.googleLabel, { color: colors.text.primary }]}>
-                    Continue with Google
+                    {t('login.continueWithGoogle')}
                   </Text>
                 </>
               )}
@@ -179,7 +183,7 @@ export function LoginScreen({ navigation, route }: Props) {
               disabled={isPending}
             >
               <Text style={[styles.linkText, { color: colors.primary.base }]}>
-                No account? Register
+                {t('login.noAccount')}
               </Text>
             </TouchableOpacity>
           </View>

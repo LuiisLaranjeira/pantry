@@ -1,0 +1,31 @@
+{
+  "common": {
+    "cancel": "Annuler",
+    "notSet": "Non défini",
+    "or": "ou"
+  },
+  "login": {
+    "subtitle": "Gestionnaire de stocks domestique",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion…",
+    "continueWithGoogle": "Continuer avec Google",
+    "noAccount": "Pas de compte ? S’inscrire",
+    "failedTitle": "Échec de connexion",
+    "failedMessage": "Quelque chose a mal tourné. Réessayez.",
+    "googleFailedTitle": "Échec de connexion Google",
+    "googleFailedMessage": "Échec de connexion Google. Réessayez."
+  },
+  "preferences": {
+    "title": "Préférences",
+    "country": "Pays",
+    "language": "Langue",
+    "groupedView": "Vue groupée du garde-manger",
+    "groupedViewSub": "Regroupe les articles par type, en ignorant la marque"
+  },
+  "languagePicker": {
+    "title": "Langue",
+    "closeLabel": "Fermer le sélecteur de langue"
+  }
+}

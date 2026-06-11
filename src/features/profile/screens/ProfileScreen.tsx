@@ -9,6 +9,7 @@ import { useSignOut } from '@/features/auth/hooks/useSignOut';
 import { AccountSection } from '@/features/profile/components/AccountSection';
 import { ActivitySection } from '@/features/profile/components/ActivitySection';
 import { CountryPicker } from '@/features/profile/components/CountryPicker';
+import { LanguagePicker } from '@/features/profile/components/LanguagePicker';
 import { ExportSection } from '@/features/profile/components/ExportSection';
 import { HouseholdSection } from '@/features/profile/components/HouseholdSection';
 import { LegalSection } from '@/features/profile/components/LegalSection';
@@ -27,6 +28,7 @@ import { useToggleNotifications } from '@/features/profile/hooks/useToggleNotifi
 import { useUpdateHouseholdPrefs } from '@/features/profile/hooks/useUpdateHouseholdPrefs';
 import { useUserEmail } from '@/features/profile/hooks/useUserEmail';
 import { useHousehold } from '@/features/household/hooks/useHousehold';
+import { useLanguage } from '@/features/profile/hooks/useLanguage';
 import { isAppError } from '@/shared/api/errors';
 import { useTheme } from '@/shared/ui';
 
@@ -35,6 +37,8 @@ export function ProfileScreen() {
   const styles = useProfileStyles();
   const { colors } = useTheme();
   const [countryPickerVisible, setCountryPickerVisible] = useState(false);
+  const [langPickerVisible, setLangPickerVisible] = useState(false);
+  const { language, setLanguage } = useLanguage();
 
   const household = useHousehold(householdId);
   const userEmail = useUserEmail();
@@ -157,7 +161,9 @@ export function ProfileScreen() {
         <PreferencesSection
           country={hh?.country}
           groupedView={hh?.grouped_view ?? false}
+          language={language}
           onCountryPress={() => setCountryPickerVisible(true)}
+          onLanguagePress={() => setLangPickerVisible(true)}
           onGroupedViewChange={(value) => onUpdatePrefs({ grouped_view: value })}
         />
 
@@ -199,6 +205,15 @@ export function ProfileScreen() {
             setCountryPickerVisible(false);
           }}
           onClose={() => setCountryPickerVisible(false)}
+        />
+        <LanguagePicker
+          visible={langPickerVisible}
+          selectedCode={language}
+          onSelect={(code) => {
+            void setLanguage(code);
+            setLangPickerVisible(false);
+          }}
+          onClose={() => setLangPickerVisible(false)}
         />
       </ScrollView>
     </SafeAreaView>

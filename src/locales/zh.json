@@ -1,0 +1,31 @@
+{
+  "common": {
+    "cancel": "取消",
+    "notSet": "未设置",
+    "or": "或"
+  },
+  "login": {
+    "subtitle": "家庭库存管理器",
+    "email": "电子邮件",
+    "password": "密码",
+    "signIn": "登录",
+    "signingIn": "登录中…",
+    "continueWithGoogle": "使用 Google 继续",
+    "noAccount": "没有账户？注册",
+    "failedTitle": "登录失败",
+    "failedMessage": "出了点问题，请重试。",
+    "googleFailedTitle": "Google 登录失败",
+    "googleFailedMessage": "Google 登录失败，请重试。"
+  },
+  "preferences": {
+    "title": "偏好设置",
+    "country": "国家",
+    "language": "语言",
+    "groupedView": "分组食品柜视图",
+    "groupedViewSub": "按类型分组，忽略品牌"
+  },
+  "languagePicker": {
+    "title": "语言",
+    "closeLabel": "关闭语言选择器"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "notSet": "Não definido",
+    "or": "ou"
+  },
+  "login": {
+    "subtitle": "Gestão de despensa doméstica",
+    "email": "Email",
+    "password": "Palavra-passe",
+    "signIn": "Entrar",
+    "signingIn": "Entrando…",
+    "continueWithGoogle": "Continuar com o Google",
+    "noAccount": "Sem conta? Registar",
+    "failedTitle": "Falha no login",
+    "failedMessage": "Algo correu mal. Tente novamente.",
+    "googleFailedTitle": "Falha ao entrar com o Google",
+    "googleFailedMessage": "Falha ao entrar com o Google. Tente novamente."
+  },
+  "preferences": {
+    "title": "Preferências",
+    "country": "País",
+    "language": "Idioma",
+    "groupedView": "Vista agrupada da despensa",
+    "groupedViewSub": "Agrupa itens por tipo, ignorando a marca"
+  },
+  "languagePicker": {
+    "title": "Idioma",
+    "closeLabel": "Fechar seletor de idioma"
+  }
+}

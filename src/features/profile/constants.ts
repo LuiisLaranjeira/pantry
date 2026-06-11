@@ -1,5 +1,14 @@
 import type { StockLogAction } from '@/features/stock/api/stockRepo';
 
+export const LANGUAGES = [
+  { code: 'en', name: 'English' },
+  { code: 'pt', name: 'Português' },
+  { code: 'es', name: 'Español' },
+  { code: 'fr', name: 'Français' },
+  { code: 'de', name: 'Deutsch' },
+  { code: 'zh', name: '中文' },
+] as const;
+
 export const COUNTRIES = [
   { code: 'pt', name: 'Portugal' },
   { code: 'br', name: 'Brazil' },

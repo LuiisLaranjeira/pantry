@@ -1,0 +1,31 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "notSet": "Nicht festgelegt",
+    "or": "oder"
+  },
+  "login": {
+    "subtitle": "Haushaltsbestandsverwaltung",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "signIn": "Anmelden",
+    "signingIn": "Anmelden…",
+    "continueWithGoogle": "Mit Google fortfahren",
+    "noAccount": "Kein Konto? Registrieren",
+    "failedTitle": "Anmeldung fehlgeschlagen",
+    "failedMessage": "Etwas ist schiefgelaufen. Versuche es erneut.",
+    "googleFailedTitle": "Google-Anmeldung fehlgeschlagen",
+    "googleFailedMessage": "Google-Anmeldung fehlgeschlagen. Versuche es erneut."
+  },
+  "preferences": {
+    "title": "Einstellungen",
+    "country": "Land",
+    "language": "Sprache",
+    "groupedView": "Gruppierte Vorratsansicht",
+    "groupedViewSub": "Artikel nach Typ gruppieren, Marke ignorieren"
+  },
+  "languagePicker": {
+    "title": "Sprache",
+    "closeLabel": "Sprachauswahl schließen"
+  }
+}

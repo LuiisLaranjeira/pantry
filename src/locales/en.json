@@ -1,0 +1,31 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "notSet": "Not set",
+    "or": "or"
+  },
+  "login": {
+    "subtitle": "Household stock manager",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "continueWithGoogle": "Continue with Google",
+    "noAccount": "No account? Register",
+    "failedTitle": "Login failed",
+    "failedMessage": "Something went wrong. Try again.",
+    "googleFailedTitle": "Google sign-in failed",
+    "googleFailedMessage": "Google sign-in failed. Try again."
+  },
+  "preferences": {
+    "title": "Preferences",
+    "country": "Country",
+    "language": "Language",
+    "groupedView": "Grouped pantry view",
+    "groupedViewSub": "Group items by type, ignoring brand"
+  },
+  "languagePicker": {
+    "title": "Language",
+    "closeLabel": "Close language picker"
+  }
+}
