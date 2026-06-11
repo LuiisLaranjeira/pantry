@@ -21,25 +21,27 @@ export function ShoppingNoList({ history, onStartList, isStarting }: Props) {
 
   return (
     <View style={styles.container}>
-      <Button
-        label={isStarting ? t('shopping.starting') : t('shopping.startList')}
-        onPress={onStartList}
-        loading={isStarting}
-        size="lg"
-        style={styles.startBtn}
+      <FlatList
+        data={history}
+        keyExtractor={(l) => l.id}
+        ListHeaderComponent={
+          history.length > 0 ? (
+            <Text style={styles.historyTitle}>{t('shopping.pastLists')}</Text>
+          ) : null
+        }
+        renderItem={({ item }) => (
+          <HistoryCard list={item} onPress={() => setViewingReceipt(item)} />
+        )}
       />
-      {history.length > 0 && (
-        <>
-          <Text style={styles.historyTitle}>{t('shopping.pastLists')}</Text>
-          <FlatList
-            data={history}
-            keyExtractor={(l) => l.id}
-            renderItem={({ item }) => (
-              <HistoryCard list={item} onPress={() => setViewingReceipt(item)} />
-            )}
-          />
-        </>
-      )}
+      <View style={styles.footer}>
+        <Button
+          label={isStarting ? t('shopping.starting') : t('shopping.startList')}
+          onPress={onStartList}
+          loading={isStarting}
+          size="lg"
+          fullWidth
+        />
+      </View>
       <ReceiptModal list={viewingReceipt} onClose={() => setViewingReceipt(null)} />
     </View>
   );
@@ -48,7 +50,13 @@ export function ShoppingNoList({ history, onStartList, isStarting }: Props) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.bg.default },
-    startBtn: { margin: 20 },
+    footer: {
+      padding: 16,
+      paddingBottom: 12,
+      backgroundColor: colors.bg.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.subtle,
+    },
     historyTitle: {
       fontSize: 12,
       fontWeight: '700',
