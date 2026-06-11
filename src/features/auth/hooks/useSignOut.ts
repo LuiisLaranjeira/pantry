@@ -10,7 +10,11 @@ export function useSignOut() {
   return useMutation({
     mutationFn: async () => {
       await authRepo.signOut();
-      await AsyncStorage.multiRemove([STORAGE_KEYS.householdId, STORAGE_KEYS.householdName]);
+      await AsyncStorage.multiRemove([
+        STORAGE_KEYS.householdId,
+        STORAGE_KEYS.householdName,
+        STORAGE_KEYS.householdCountry,
+      ]);
     },
     onSuccess: async () => {
       // Drop any cached data for the signed-out user so the next sign-in

@@ -44,10 +44,12 @@ export function HouseholdProvider({ children }: PropsWithChildren) {
     // once the session is established.
     const household = await householdRepo.getForCurrentUser().catch(() => null);
     if (household) {
-      await AsyncStorage.multiSet([
+      const pairs: [string, string][] = [
         [STORAGE_KEYS.householdId, household.id],
         [STORAGE_KEYS.householdName, household.name],
-      ]);
+      ];
+      if (household.country) pairs.push([STORAGE_KEYS.householdCountry, household.country]);
+      await AsyncStorage.multiSet(pairs);
       setHouseholdId(household.id);
       setHouseholdName(household.name);
     } else {

@@ -98,16 +98,18 @@ export const householdRepo = {
   // Returns the first household the signed-in user belongs to, or null if
   // they have none. Used to recover household state when AsyncStorage is empty
   // (new device, reinstall, cleared storage).
-  async getForCurrentUser(): Promise<{ id: string; name: string } | null> {
+  async getForCurrentUser(): Promise<{ id: string; name: string; country: string | null } | null> {
     const { data, error } = await supabase
       .from('household_users')
-      .select('households(id, name)')
+      .select('households(id, name, country)')
       .limit(1)
       .maybeSingle();
     if (error || !data) return null;
-    const rows = (data as { households: { id: string; name: string }[] | null }).households;
+    const rows = (
+      data as { households: { id: string; name: string; country: string | null }[] | null }
+    ).households;
     const h = Array.isArray(rows) ? rows[0] : rows;
-    return h?.id ? { id: h.id, name: h.name } : null;
+    return h?.id ? { id: h.id, name: h.name, country: h.country ?? null } : null;
   },
 };
 
