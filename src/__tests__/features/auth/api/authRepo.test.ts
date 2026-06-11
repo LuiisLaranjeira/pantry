@@ -235,4 +235,14 @@ describe('onAuthStateChange', () => {
     authRepo.onAuthStateChange(cb);
     expect(cb).toHaveBeenCalledWith(fakeSession);
   });
+
+  it('forwards null session to the callback on sign-out', () => {
+    const cb = jest.fn();
+    (mockAuth.onAuthStateChange as jest.Mock).mockImplementation((handler) => {
+      handler('SIGNED_OUT', null);
+      return { data: { subscription: { unsubscribe: jest.fn() } } };
+    });
+    authRepo.onAuthStateChange(cb);
+    expect(cb).toHaveBeenCalledWith(null);
+  });
 });

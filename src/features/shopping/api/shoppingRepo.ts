@@ -160,7 +160,7 @@ export const shoppingRepo = {
       .eq('household_id', householdId)
       .eq('status', 'completed')
       .order('completed_at', { ascending: false });
-    if (options?.limit) query = query.limit(options.limit);
+    if (options?.limit != null) query = query.limit(options.limit);
     const { data, error } = await query;
     if (error) throw mapSupabaseError(error, 'Could not load shopping history.');
     return data ?? [];

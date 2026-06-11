@@ -96,6 +96,17 @@ describe('getOrCreateActiveList', () => {
     expect(await shoppingRepo.getOrCreateActiveList('hh-1', 'list-new')).toEqual(fakeList);
   });
 
+  it('re-throws the conflict error when the retry getActiveList also returns null', async () => {
+    const conflictErr = { code: '23505', message: 'Duplicate', details: '', hint: '' };
+    // getActiveList → empty, createList → conflict, retry getActiveList → still empty
+    mockFrom.mockReturnValueOnce(makeChain({ data: [], error: null }));
+    mockFrom.mockReturnValueOnce(makeChain({ data: null, error: conflictErr }));
+    mockFrom.mockReturnValueOnce(makeChain({ data: [], error: null }));
+    await expect(shoppingRepo.getOrCreateActiveList('hh-1', 'list-new')).rejects.toBeInstanceOf(
+      AppError,
+    );
+  });
+
   it('re-throws non-conflict errors from createList', async () => {
     mockFrom.mockReturnValueOnce(makeChain({ data: [], error: null }));
     mockFrom.mockReturnValueOnce(
@@ -348,6 +359,13 @@ describe('completedLists', () => {
     mockFrom.mockReturnValue(chain);
     await shoppingRepo.completedLists('hh-1');
     expect(chain.limit as jest.Mock).not.toHaveBeenCalled();
+  });
+
+  it('applies limit when limit is 0', async () => {
+    const chain = makeChain({ data: [], error: null });
+    mockFrom.mockReturnValue(chain);
+    await shoppingRepo.completedLists('hh-1', { limit: 0 });
+    expect(chain.limit as jest.Mock).toHaveBeenCalledWith(0);
   });
 
   it('throws AppError when supabase returns an error', async () => {

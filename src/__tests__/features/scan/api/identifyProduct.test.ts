@@ -1,6 +1,7 @@
 import { authRepo } from '@/features/auth/api/authRepo';
 import { identifyProduct } from '@/features/scan/api/identifyProduct';
 import { AppError } from '@/shared/api/errors';
+import { fakeSession, createFetchMock } from '../../../__helpers__/fetchMock';
 
 jest.mock('@/config/env', () => ({
   env: { EXPO_PUBLIC_SUPABASE_FUNCTIONS_URL: 'https://fn.test/functions/v1' },
@@ -16,14 +17,7 @@ jest.mock('@/shared/lib/uuid', () => ({
 }));
 
 const mockGetSession = authRepo.getSession as jest.Mock;
-const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
-global.fetch = mockFetch;
-
-const fakeSession = { access_token: 'tok' } as any;
-
-function mockResponse(body: unknown, ok = true, status = 200) {
-  mockFetch.mockResolvedValueOnce({ ok, status, json: async () => body } as Response);
-}
+const { mockFetch, mockResponse } = createFetchMock();
 
 beforeEach(() => {
   jest.clearAllMocks();

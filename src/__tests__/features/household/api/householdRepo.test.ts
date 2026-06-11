@@ -93,6 +93,7 @@ describe('joinByInviteCode', () => {
     const rpcResult = { id: 'hh-3', name: 'Shared', invite_code: 'code1' };
     mockRpc.mockResolvedValue({ data: rpcResult, error: null });
     expect(await householdRepo.joinByInviteCode('code1')).toEqual(rpcResult);
+    expect(mockRpc).toHaveBeenCalledWith('join_household_by_invite_code', { p_code: 'code1' });
   });
 
   it('throws AppError("not_found") when the invite code does not exist', async () => {
@@ -110,6 +111,12 @@ describe('joinByInviteCode', () => {
     const err = await householdRepo.joinByInviteCode('code').catch((e) => e);
     expect(err).toBeInstanceOf(AppError);
     expect((err as AppError).code).not.toBe('not_found');
+  });
+
+  it('throws AppError when RPC returns null data with no error', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: null });
+    const err = await householdRepo.joinByInviteCode('code').catch((e) => e);
+    expect(err).toBeInstanceOf(AppError);
   });
 });
 
