@@ -80,12 +80,14 @@ export function StockScreen({ navigation, route }: Props) {
     navigation.setOptions({ tabBarBadge: activeLowCount > 0 ? activeLowCount : undefined });
   }, [activeLowCount, navigation]);
 
-  const { refetch: refetchStock } = stockList;
+  const { isStale: isStockStale, refetch: refetchStock } = stockList;
+  const { isStale: isHouseholdStale, refetch: refetchHousehold } = household;
   useFocusEffect(
     useCallback(() => {
       setBannerDismissed(false);
-      refetchStock();
-    }, [refetchStock]),
+      if (isStockStale) refetchStock();
+      if (isHouseholdStale) refetchHousehold();
+    }, [isStockStale, refetchStock, isHouseholdStale, refetchHousehold]),
   );
 
   useEffect(() => {

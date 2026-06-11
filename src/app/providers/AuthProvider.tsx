@@ -38,24 +38,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
     // single-use PKCE code.
     let mounted = true;
     const handleUrl = (url: string) => {
+      if (!mounted) return;
       try {
         const parsed = new URL(url);
         const code = parsed.searchParams.get('code');
         const isOAuthCallback = !!parsed.searchParams.get('state');
         if (code && !isOAuthCallback) {
           authRepo.exchangeOAuthCode(code).catch(() => {
+            if (!mounted) return;
             Alert.alert(
-              'Link expired',
-              'This confirmation link is no longer valid. Please sign up again.',
+              'Confirmation failed',
+              'Could not confirm your email. The link may have expired or there was a connection error — please try again or sign up again for a new link.',
             );
           });
         }
       } catch {}
     };
 
-    Linking.getInitialURL().then((url) => {
-      if (mounted && url) handleUrl(url);
-    });
+    Linking.getInitialURL()
+      .then((url) => {
+        if (url) handleUrl(url);
+      })
+      .catch(() => {});
     const linkingSub = Linking.addEventListener('url', ({ url }) => handleUrl(url));
 
     return () => {

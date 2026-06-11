@@ -94,13 +94,22 @@ export function ShoppingScreen({ navigation }: Props) {
 
   useShoppingListSync(activeList.data?.id, householdId);
 
-  const { refetch: refetchActiveList } = activeList;
-  const { refetch: refetchHistory } = history;
+  const { isStale: isActiveListStale, refetch: refetchActiveList } = activeList;
+  const { isStale: isHistoryStale, refetch: refetchHistory } = history;
+  const { isStale: isItemsStale, refetch: refetchItems } = items;
   useFocusEffect(
     useCallback(() => {
-      refetchActiveList();
-      refetchHistory();
-    }, [refetchActiveList, refetchHistory]),
+      if (isActiveListStale) refetchActiveList();
+      if (isHistoryStale) refetchHistory();
+      if (isItemsStale) refetchItems();
+    }, [
+      isActiveListStale,
+      refetchActiveList,
+      isHistoryStale,
+      refetchHistory,
+      isItemsStale,
+      refetchItems,
+    ]),
   );
 
   const itemList = useMemo(() => items.data ?? [], [items.data]);
@@ -177,7 +186,13 @@ export function ShoppingScreen({ navigation }: Props) {
     if (!editingItem) return;
     updateItem.mutate(
       { itemId: editingItem.id, patch: { name: product.name, quantity, unit_price: unitPrice } },
-      { onSuccess: () => setEditingItem(null) },
+      {
+        onSuccess: () => setEditingItem(null),
+        onError: (err) => {
+          const msg = isAppError(err) ? err.message : 'Could not save changes.';
+          Alert.alert('Could not save', msg);
+        },
+      },
     );
   };
 
@@ -231,6 +246,7 @@ export function ShoppingScreen({ navigation }: Props) {
   const handleRefresh = () => {
     activeList.refetch();
     items.refetch();
+    history.refetch();
   };
 
   if (activeList.isPending || history.isPending) {
