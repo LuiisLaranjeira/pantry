@@ -79,6 +79,45 @@ describe('RLS invariants', () => {
       expect(data).toEqual([]);
     });
 
+    test('two members of the same household can see each other (regression: 42P17 recursion fix)', async () => {
+      // carol joins alice's household; both should now see both membership rows.
+      const carol = await provisionTestUser('carol-visibility');
+      try {
+        const { error: joinErr } = await carol.client.rpc('join_household_by_invite_code', {
+          p_code: alice.inviteCode,
+        });
+        expect(joinErr).toBeNull();
+
+        // Carol sees both herself and alice.
+        const { data: carolSees, error: carolErr } = await carol.client
+          .from('household_users')
+          .select('user_id')
+          .eq('household_id', alice.householdId);
+        expect(carolErr).toBeNull();
+        const carolIds = (carolSees ?? []).map((r) => r.user_id);
+        expect(carolIds).toContain(alice.userId);
+        expect(carolIds).toContain(carol.userId);
+
+        // Alice also sees carol.
+        const { data: aliceSees, error: aliceErr } = await alice.client
+          .from('household_users')
+          .select('user_id')
+          .eq('household_id', alice.householdId);
+        expect(aliceErr).toBeNull();
+        const aliceIds = (aliceSees ?? []).map((r) => r.user_id);
+        expect(aliceIds).toContain(carol.userId);
+      } finally {
+        await destroyTestUser(carol);
+      }
+    });
+
+    test('auth_user_household_ids() RPC returns the household IDs for the current user', async () => {
+      const { data, error } = await alice.client.rpc('auth_user_household_ids');
+      expect(error).toBeNull();
+      expect(Array.isArray(data)).toBe(true);
+      expect(data).toContain(alice.householdId);
+    });
+
     test('direct INSERT into household_users is denied (RPC-only writes)', async () => {
       // Migration 20260603130000 dropped the legacy INSERT policy. The
       // only way new rows land here is via create_household() /

@@ -10,6 +10,8 @@
     "web": "expo start --web",
     "test": "jest",
     "test:rls": "jest --config jest.rls.config.js --runInBand",
+    "test:functions": "jest --config jest.functions.config.js",
+    "test:all": "jest && jest --config jest.functions.config.js",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
@@ -30,6 +32,9 @@
     "testMatch": [
       "**/__tests__/**/*.test.ts"
     ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    },
     "transform": {
       "^.+\\.tsx?$": [
         "ts-jest",
