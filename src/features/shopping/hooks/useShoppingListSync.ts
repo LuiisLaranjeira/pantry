@@ -11,8 +11,12 @@ export function useShoppingListSync(listId: string | null | undefined, household
   useEffect(() => {
     if (!listId) return;
 
+    // supabase.channel() deduplicates by name: if a previous channel with the
+    // same topic hasn't finished unsubscribing (removeChannel is async), it
+    // returns the already-subscribed instance and .on() throws. A unique suffix
+    // per effect invocation guarantees a fresh channel every time.
     const channel = supabase
-      .channel(`shopping-list-${listId}`)
+      .channel(`shopping-list-${listId}-${Math.random().toString(36).slice(2)}`)
       .on(
         'postgres_changes',
         {

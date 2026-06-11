@@ -1,5 +1,6 @@
 import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
+import { Linking } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAppState } from '@/app/providers/AppStateProvider';
@@ -17,13 +18,49 @@ export function useSignInWithGoogle() {
       const redirectTo = makeRedirectUri({ scheme: appScheme() });
       const url = await authRepo.getGoogleOAuthUrl(redirectTo);
 
+      // Register an independent Linking listener BEFORE opening the browser.
+      // On Android, expo-web-browser uses a polyfill that races AppState 'active'
+      // (→ 'dismiss') against Linking 'url' (→ 'success'). AppState sometimes
+      // wins even when auth completed, discarding the redirect URL. Capturing it
+      // here lets us detect success regardless of which branch the polyfill took.
+      //
+      // The code exchange itself is intentionally left to AuthProvider's Linking
+      // handler — Supabase does not forward the OAuth `state` param to the final
+      // app redirect, so both Google OAuth and email-confirmation codes arrive as
+      // identical `scheme://?code=xxx` deep links. AuthProvider is the single
+      // exchanger; we only detect the URL here to know whether auth succeeded.
+      let capturedUrl: string | null = null;
+      const linkingSub = Linking.addEventListener('url', ({ url: u }) => {
+        if (u.startsWith(redirectTo)) capturedUrl = u;
+      });
+
       const result = await WebBrowser.openAuthSessionAsync(url, redirectTo);
-      if (result.type !== 'success') throw new AppError('auth', 'Google sign-in was cancelled.');
+      linkingSub.remove();
 
-      const callbackUrl = new URL(result.url);
+      let effectiveUrl: string | null = result.type === 'success' ? result.url : capturedUrl;
 
-      // Supabase encodes errors in the redirect URL when the OAuth flow
-      // fails server-side (e.g. duplicate email, access denied).
+      if (!effectiveUrl && result.type === 'dismiss') {
+        // Android polyfill race: AppState 'active' won but the Linking event is
+        // still in flight. Wait a brief window for it to arrive.
+        effectiveUrl = await new Promise<string | null>((resolve) => {
+          const sub = Linking.addEventListener('url', ({ url: u }) => {
+            if (u.startsWith(redirectTo)) {
+              sub.remove();
+              resolve(u);
+            }
+          });
+          setTimeout(() => {
+            sub.remove();
+            resolve(null);
+          }, 300);
+        });
+      }
+
+      if (!effectiveUrl) throw new AppError('auth', 'Google sign-in was cancelled.');
+
+      const callbackUrl = new URL(effectiveUrl);
+
+      // Check for server-side OAuth errors (e.g. duplicate email, access denied).
       const oauthError = callbackUrl.searchParams.get('error');
       const oauthErrorDesc = callbackUrl.searchParams.get('error_description');
       if (oauthError) {
@@ -38,10 +75,10 @@ export function useSignInWithGoogle() {
         );
       }
 
-      const code = callbackUrl.searchParams.get('code');
-      if (!code) throw new AppError('auth', 'No authorisation code in Google sign-in response.');
-
-      return authRepo.exchangeOAuthCode(code);
+      if (!callbackUrl.searchParams.get('code')) {
+        throw new AppError('auth', 'No authorisation code in Google sign-in response.');
+      }
+      // AuthProvider exchanges the code via its Linking listener.
     },
     onSuccess: () => refresh(),
   });

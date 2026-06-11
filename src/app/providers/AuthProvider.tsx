@@ -31,19 +31,19 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setIsLoading(false);
     });
 
-    // Handle deep links for email confirmation (pantry.preview://?code=xxx).
-    // Google OAuth redirects also carry ?code= but additionally have a ?state=
-    // param — we skip those here since useSignInWithGoogle handles them via
-    // WebBrowser.openAuthSessionAsync, avoiding double-consumption of the
-    // single-use PKCE code.
+    // Handle deep links for both email confirmation and Google OAuth.
+    // Both flows produce identical scheme://?code=xxx redirects — Supabase does
+    // not forward the OAuth `state` param to the final app redirect, so there is
+    // no URL-level way to tell them apart. This handler is the single consumer
+    // of PKCE codes; useSignInWithGoogle detects the URL to know whether auth
+    // succeeded but intentionally does not call exchangeOAuthCode.
     let mounted = true;
     const handleUrl = (url: string) => {
       if (!mounted) return;
       try {
         const parsed = new URL(url);
         const code = parsed.searchParams.get('code');
-        const isOAuthCallback = !!parsed.searchParams.get('state');
-        if (code && !isOAuthCallback) {
+        if (code) {
           authRepo.exchangeOAuthCode(code).catch(() => {
             if (!mounted) return;
             Alert.alert(
