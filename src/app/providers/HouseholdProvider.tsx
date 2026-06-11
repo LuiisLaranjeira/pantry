@@ -8,6 +8,7 @@ import {
   type PropsWithChildren,
 } from 'react';
 
+import { householdRepo } from '@/features/household/api/householdRepo';
 import { STORAGE_KEYS } from '@/shared/lib/storageKeys';
 
 interface HouseholdContextValue {
@@ -29,8 +30,30 @@ export function HouseholdProvider({ children }: PropsWithChildren) {
       STORAGE_KEYS.householdId,
       STORAGE_KEYS.householdName,
     ]);
-    setHouseholdId(id ?? null);
-    setHouseholdName(name ?? null);
+
+    if (id) {
+      setHouseholdId(id);
+      setHouseholdName(name ?? null);
+      setIsLoading(false);
+      return;
+    }
+
+    // AsyncStorage has no household — recover from the database (new device,
+    // reinstall, or cleared storage). Silently ignore errors: if there is no
+    // active session yet the query will fail; reload() will be called again
+    // once the session is established.
+    const household = await householdRepo.getForCurrentUser().catch(() => null);
+    if (household) {
+      await AsyncStorage.multiSet([
+        [STORAGE_KEYS.householdId, household.id],
+        [STORAGE_KEYS.householdName, household.name],
+      ]);
+      setHouseholdId(household.id);
+      setHouseholdName(household.name);
+    } else {
+      setHouseholdId(null);
+      setHouseholdName(null);
+    }
     setIsLoading(false);
   }, []);
 
