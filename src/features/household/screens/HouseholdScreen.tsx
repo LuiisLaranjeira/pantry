@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { useCreateHousehold } from '@/features/household/hooks/useCreateHousehold';
 import { useJoinHousehold } from '@/features/household/hooks/useJoinHousehold';
@@ -18,6 +19,7 @@ import { Button, TextField, useTheme } from '@/shared/ui';
 type Mode = 'choose' | 'create' | 'join';
 
 export function HouseholdScreen() {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<Mode>('choose');
   const [householdName, setHouseholdName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
@@ -33,8 +35,8 @@ export function HouseholdScreen() {
       { name },
       {
         onError: (err) => {
-          const message = isAppError(err) ? err.message : 'Something went wrong. Try again.';
-          Alert.alert('Could not create household', message);
+          const message = isAppError(err) ? err.message : t('common.somethingWentWrong');
+          Alert.alert(t('household.couldNotCreate'), message);
         },
       },
     );
@@ -48,11 +50,11 @@ export function HouseholdScreen() {
       {
         onError: (err) => {
           if (isAppError(err) && err.code === 'not_found') {
-            Alert.alert('Not found', err.message);
+            Alert.alert(t('household.notFound'), err.message);
             return;
           }
-          const message = isAppError(err) ? err.message : 'Something went wrong. Try again.';
-          Alert.alert('Could not join household', message);
+          const message = isAppError(err) ? err.message : t('common.somethingWentWrong');
+          Alert.alert(t('household.couldNotJoin'), message);
         },
       },
     );
@@ -76,20 +78,20 @@ export function HouseholdScreen() {
                   { color: colors.primary.base, fontWeight: typography.weight.bold },
                 ]}
               >
-                Set up your household
+                {t('household.setupTitle')}
               </Text>
               <Text style={[styles.subtitle, { color: colors.text.subtle }]}>
-                Create a new household or join an existing one with an invite code.
+                {t('household.setupSubtitle')}
               </Text>
               <Button
-                label="Create household"
+                label={t('household.create')}
                 onPress={() => setMode('create')}
                 size="lg"
                 fullWidth
                 style={styles.button}
               />
               <Button
-                label="Join with invite code"
+                label={t('household.joinWithCode')}
                 onPress={() => setMode('join')}
                 variant="secondary"
                 size="lg"
@@ -107,17 +109,17 @@ export function HouseholdScreen() {
                   { color: colors.primary.base, fontWeight: typography.weight.bold },
                 ]}
               >
-                Name your household
+                {t('household.nameTitle')}
               </Text>
               <TextField
                 containerStyle={styles.field}
-                placeholder="e.g. The Smiths"
+                placeholder={t('household.namePlaceholder')}
                 value={householdName}
                 onChangeText={setHouseholdName}
                 editable={!isCreating}
               />
               <Button
-                label="Create"
+                label={t('household.createBtn')}
                 onPress={handleCreate}
                 loading={isCreating}
                 disabled={!householdName.trim()}
@@ -126,7 +128,9 @@ export function HouseholdScreen() {
                 style={styles.button}
               />
               <TouchableOpacity style={styles.link} onPress={() => setMode('choose')}>
-                <Text style={[styles.linkText, { color: colors.primary.base }]}>Back</Text>
+                <Text style={[styles.linkText, { color: colors.primary.base }]}>
+                  {t('common.back')}
+                </Text>
               </TouchableOpacity>
             </>
           )}
@@ -139,18 +143,18 @@ export function HouseholdScreen() {
                   { color: colors.primary.base, fontWeight: typography.weight.bold },
                 ]}
               >
-                Enter invite code
+                {t('household.joinTitle')}
               </Text>
               <TextField
                 containerStyle={styles.field}
-                placeholder="6-character code"
+                placeholder={t('household.codePlaceholder')}
                 value={inviteCode}
                 onChangeText={setInviteCode}
                 autoCapitalize="none"
                 editable={!isJoining}
               />
               <Button
-                label="Join"
+                label={t('household.joinBtn')}
                 onPress={handleJoin}
                 loading={isJoining}
                 disabled={!inviteCode.trim()}
@@ -159,7 +163,9 @@ export function HouseholdScreen() {
                 style={styles.button}
               />
               <TouchableOpacity style={styles.link} onPress={() => setMode('choose')}>
-                <Text style={[styles.linkText, { color: colors.primary.base }]}>Back</Text>
+                <Text style={[styles.linkText, { color: colors.primary.base }]}>
+                  {t('common.back')}
+                </Text>
               </TouchableOpacity>
             </>
           )}

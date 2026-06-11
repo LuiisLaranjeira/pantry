@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { useProfileStyles } from '@/features/profile/components/styles';
 import { useTheme } from '@/shared/ui';
@@ -17,11 +18,12 @@ export function ExportSection({
   onExportStock,
   onExportHistory,
 }: Props) {
+  const { t } = useTranslation();
   const styles = useProfileStyles();
   const { colors } = useTheme();
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Export</Text>
+      <Text style={styles.sectionTitle}>{t('profile.exportTitle')}</Text>
       <View style={styles.card}>
         <TouchableOpacity style={styles.row} onPress={onExportStock} disabled={isExportingStock}>
           <Ionicons
@@ -31,8 +33,8 @@ export function ExportSection({
             style={styles.rowIcon}
           />
           <View style={styles.rowBody}>
-            <Text style={styles.rowLabel}>Pantry stock</Text>
-            <Text style={styles.rowSubLabel}>Export current stock as CSV</Text>
+            <Text style={styles.rowLabel}>{t('profile.exportStock')}</Text>
+            <Text style={styles.rowSubLabel}>{t('profile.exportStockSub')}</Text>
           </View>
           {isExportingStock ? (
             <ActivityIndicator size="small" color={colors.text.muted} />
@@ -53,8 +55,8 @@ export function ExportSection({
             style={styles.rowIcon}
           />
           <View style={styles.rowBody}>
-            <Text style={styles.rowLabel}>Shopping history</Text>
-            <Text style={styles.rowSubLabel}>Export all past lists as CSV</Text>
+            <Text style={styles.rowLabel}>{t('profile.exportHistory')}</Text>
+            <Text style={styles.rowSubLabel}>{t('profile.exportHistorySub')}</Text>
           </View>
           {isExportingHistory ? (
             <ActivityIndicator size="small" color={colors.text.muted} />

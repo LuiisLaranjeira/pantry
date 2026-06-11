@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/shared/ui';
 import type { GroupedStockItem } from '@/shared/types/domain';
@@ -22,6 +23,7 @@ export function GroupedStockCard({
   onDelete,
   isDeleting,
 }: Props) {
+  const { t } = useTranslation();
   const { colors, elevation } = useTheme();
   const styles = useMemo(() => makeStyles(colors, elevation), [colors, elevation]);
 
@@ -42,7 +44,7 @@ export function GroupedStockCard({
       </View>
       {!isDeleting && group.quantity <= group.low_stock_threshold && (
         <View style={styles.lowBadge}>
-          <Text style={styles.lowBadgeText}>Low</Text>
+          <Text style={styles.lowBadgeText}>{t('stock.lowBadge')}</Text>
         </View>
       )}
       {isDeleting ? (

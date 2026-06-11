@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Modal,
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export function ReceiptModal({ list, onClose }: Props) {
+  const { t } = useTranslation();
   const items = useShoppingItems(list?.id ?? null);
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -40,7 +42,7 @@ export function ReceiptModal({ list, onClose }: Props) {
       <View style={styles.container}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Receipt</Text>
+            <Text style={styles.title}>{t('shopping.receipt')}</Text>
             {list?.completed_at && (
               <Text style={styles.date}>
                 {new Date(list.completed_at).toLocaleDateString('en-GB', {
@@ -74,8 +76,12 @@ export function ReceiptModal({ list, onClose }: Props) {
                       </Text>
                     )}
                     <Text style={styles.meta}>
-                      qty {item.quantity}
-                      {item.unit_price != null ? ` × ${formatCurrency(item.unit_price)}` : ''}
+                      {item.unit_price != null
+                        ? t('shopping.receiptQtyUnit', {
+                            qty: item.quantity,
+                            price: formatCurrency(item.unit_price),
+                          })
+                        : t('shopping.receiptQty', { qty: item.quantity })}
                     </Text>
                   </View>
                   {item.unit_price != null && (
@@ -89,7 +95,7 @@ export function ReceiptModal({ list, onClose }: Props) {
 
             {list?.total_spent != null && (
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalLabel}>{t('shopping.receiptTotal')}</Text>
                 <Text style={styles.totalAmount}>{formatCurrency(list.total_spent)}</Text>
               </View>
             )}

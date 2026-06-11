@@ -1,30 +1,38 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ACTION_META } from '@/features/profile/constants';
 import { useProfileStyles } from '@/features/profile/components/styles';
 import type { StockLogRecord } from '@/features/stock/api/stockRepo';
 import { timeAgo } from '@/shared/lib/time';
 
+const ACTION_LABEL_KEYS: Record<string, string> = {
+  consume: 'profile.actionConsumed',
+  restock: 'profile.actionRestocked',
+  add: 'profile.actionAdded',
+  remove: 'profile.actionRemoved',
+};
+
 interface Props {
   log: StockLogRecord[];
 }
 
 export function ActivitySection({ log }: Props) {
+  const { t } = useTranslation();
   const styles = useProfileStyles();
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Recent Activity</Text>
+      <Text style={styles.sectionTitle}>{t('profile.activityTitle')}</Text>
       <View style={styles.card}>
         {log.length === 0 ? (
           <View style={styles.row}>
-            <Text style={styles.rowSubLabel}>
-              No activity yet. Start by adjusting stock quantities.
-            </Text>
+            <Text style={styles.rowSubLabel}>{t('profile.activityEmpty')}</Text>
           </View>
         ) : (
           log.map((entry, i) => {
             const meta = ACTION_META[entry.action];
+            const actionLabel = t(ACTION_LABEL_KEYS[entry.action] ?? 'profile.actionAdded');
             return (
               <View key={entry.id}>
                 {i > 0 && <View style={styles.divider} />}
@@ -40,7 +48,7 @@ export function ActivitySection({ log }: Props) {
                       {entry.product_name}
                     </Text>
                     <Text style={styles.rowSubLabel}>
-                      {meta.label} · {timeAgo(entry.created_at)}
+                      {actionLabel} · {timeAgo(entry.created_at)}
                     </Text>
                   </View>
                   <Text style={[styles.logQty, { color: meta.color }]}>

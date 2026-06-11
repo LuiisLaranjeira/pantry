@@ -3,6 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -46,7 +47,7 @@ type Props = CompositeScreenProps<
 
 type Section = { title: string; data: ShoppingListItem[] };
 
-function groupSections(items: ShoppingListItem[]): Section[] {
+function groupSections(items: ShoppingListItem[], inCartLabel: string): Section[] {
   const unchecked = items.filter((i) => !i.checked);
   const checked = items.filter((i) => i.checked);
 
@@ -67,13 +68,14 @@ function groupSections(items: ShoppingListItem[]): Section[] {
     .map((title) => ({ title, data: byCategory.get(title)! }));
 
   if (checked.length > 0) {
-    sections.push({ title: 'In cart', data: checked });
+    sections.push({ title: inCartLabel, data: checked });
   }
 
   return sections;
 }
 
 export function ShoppingScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { householdId } = useAppState();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -123,7 +125,7 @@ export function ShoppingScreen({ navigation }: Props) {
         .reduce((sum, i) => sum + (i.unit_price ?? 0) * i.quantity, 0),
     [checkedItems],
   );
-  const sections = useMemo(() => groupSections(itemList), [itemList]);
+  const sections = useMemo(() => groupSections(itemList, t('shopping.inCart')), [itemList, t]);
 
   useEffect(() => {
     if (!activeList.data) {
@@ -153,10 +155,18 @@ export function ShoppingScreen({ navigation }: Props) {
     toggleChecked.mutate({ itemId: item.id, checked: !item.checked });
 
   const handleDelete = (item: ShoppingListItem) => {
-    Alert.alert('Remove item', `Remove "${item.name}" from the list?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () => deleteItem.mutate(item.id) },
-    ]);
+    Alert.alert(
+      t('shopping.removeItemTitle'),
+      t('shopping.removeItemMessage', { name: item.name }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('shopping.remove'),
+          style: 'destructive',
+          onPress: () => deleteItem.mutate(item.id),
+        },
+      ],
+    );
   };
 
   const handleAdd = (
@@ -170,8 +180,8 @@ export function ShoppingScreen({ navigation }: Props) {
       {
         onSuccess: () => setShowAdd(false),
         onError: (err) => {
-          const msg = isAppError(err) ? err.message : 'Could not add item.';
-          Alert.alert('Could not add', msg);
+          const msg = isAppError(err) ? err.message : t('shopping.couldNotAdd');
+          Alert.alert(t('common.couldNotAdd'), msg);
         },
       },
     );
@@ -189,8 +199,8 @@ export function ShoppingScreen({ navigation }: Props) {
       {
         onSuccess: () => setEditingItem(null),
         onError: (err) => {
-          const msg = isAppError(err) ? err.message : 'Could not save changes.';
-          Alert.alert('Could not save', msg);
+          const msg = isAppError(err) ? err.message : t('shopping.couldNotSaveChanges');
+          Alert.alert(t('shopping.couldNotSave'), msg);
         },
       },
     );
@@ -198,23 +208,23 @@ export function ShoppingScreen({ navigation }: Props) {
 
   const handleConfirmPurchase = () => {
     if (!activeList.data || checkedCount === 0) {
-      Alert.alert('No items checked', 'Check the items you actually bought.');
+      Alert.alert(t('shopping.noItemsChecked'), t('shopping.noItemsCheckedMessage'));
       return;
     }
+    const itemsLabel = t('shopping.confirmItems', { count: checkedCount });
     Alert.alert(
-      'Confirm purchase',
-      `${checkedCount} item${checkedCount > 1 ? 's' : ''}${
-        runningTotal > 0 ? ` · ${formatCurrency(runningTotal)}` : ''
-      }\n\nAdd checked items to pantry stock?`,
+      t('shopping.confirmPurchaseTitle'),
+      `${itemsLabel}${runningTotal > 0 ? ` · ${formatCurrency(runningTotal)}` : ''}\n\n${t('shopping.addToPantryQuestion')}`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Confirm',
+          text: t('shopping.confirm'),
           onPress: () =>
             confirmPurchase.mutate(
               { listId: activeList.data!.id, checkedItems, total: runningTotal },
               {
-                onError: () => Alert.alert('Could not confirm', 'Failed to complete the purchase.'),
+                onError: () =>
+                  Alert.alert(t('shopping.couldNotConfirm'), t('shopping.couldNotConfirmMessage')),
               },
             ),
         },
@@ -224,10 +234,10 @@ export function ShoppingScreen({ navigation }: Props) {
 
   const handleDeleteList = () => {
     if (!activeList.data) return;
-    Alert.alert('Delete list', 'Delete this shopping list and all its items?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('shopping.deleteListTitle'), t('shopping.deleteListMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('shopping.delete'),
         style: 'destructive',
         onPress: () => deleteList.mutate(activeList.data!.id),
       },
@@ -237,8 +247,8 @@ export function ShoppingScreen({ navigation }: Props) {
   const handleStartList = () => {
     startList.mutate(undefined, {
       onError: (err) => {
-        const msg = isAppError(err) ? err.message : 'Could not start a shopping list.';
-        Alert.alert('Error', msg);
+        const msg = isAppError(err) ? err.message : t('shopping.couldNotStart');
+        Alert.alert(t('common.error'), msg);
       },
     });
   };
@@ -292,8 +302,8 @@ export function ShoppingScreen({ navigation }: Props) {
         >
           <EmptyState
             icon="cloud-offline-outline"
-            title="Could not load items"
-            subtitle="Pull down to retry."
+            title={t('shopping.loadError')}
+            subtitle={t('shopping.loadErrorSub')}
           />
         </ScrollView>
       ) : (
@@ -310,7 +320,9 @@ export function ShoppingScreen({ navigation }: Props) {
               onDelete={() => handleDelete(item)}
             />
           )}
-          ListEmptyComponent={<EmptyState title="List is empty" subtitle="Tap + to add items." />}
+          ListEmptyComponent={
+            <EmptyState title={t('shopping.empty')} subtitle={t('shopping.emptySub')} />
+          }
           refreshControl={
             <RefreshControl
               refreshing={activeList.isRefetching || items.isRefetching}
@@ -323,13 +335,13 @@ export function ShoppingScreen({ navigation }: Props) {
 
       <View style={styles.bottomBar}>
         <Button
-          label="+ Add item"
+          label={t('shopping.addItem')}
           onPress={() => setShowAdd(true)}
           fullWidth
           style={styles.bottomBtn}
         />
         <Button
-          label="Scan"
+          label={t('common.scan')}
           onPress={() => navigation.navigate('Scan', { defaultDestination: 'list' })}
           fullWidth
           style={styles.bottomBtn}
@@ -347,7 +359,7 @@ export function ShoppingScreen({ navigation }: Props) {
         visible={editingItem !== null}
         product={editProduct}
         fixedDestination="list"
-        title="Edit item"
+        title={t('shopping.editItem')}
         defaultQuantity={editingItem?.quantity ?? 1}
         onConfirm={handleSaveEdit}
         onCancel={() => setEditingItem(null)}

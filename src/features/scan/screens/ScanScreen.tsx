@@ -1,5 +1,6 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -29,6 +30,7 @@ type ScanMode = 'scanning' | 'loading' | 'photo' | 'confirming';
 const BARCODE_TYPES = ['ean13', 'ean8', 'upc_a', 'upc_e'] as const;
 
 export function ScanScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const defaultDestination: Destination = route.params?.defaultDestination ?? 'stock';
   const returnSearch = route.params?.returnSearch ?? false;
 
@@ -37,7 +39,7 @@ export function ScanScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [permission, requestPermission] = useCameraPermissions();
   const [mode, setMode] = useState<ScanMode>('scanning');
-  const [loadingMessage, setLoadingMessage] = useState('Looking up product…');
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [product, setProduct] = useState<PartialProduct | null>(null);
   const [pendingBarcode, setPendingBarcode] = useState<string | null>(null);
 
@@ -57,7 +59,7 @@ export function ScanScreen({ navigation, route }: Props) {
   const handleBarcode = ({ data: barcode }: { data: string }) => {
     if (scannedRef.current) return;
     scannedRef.current = true;
-    setLoadingMessage('Looking up product…');
+    setLoadingMessage(t('scan.lookingUp'));
     setMode('loading');
     setPendingBarcode(barcode);
 
@@ -102,7 +104,7 @@ export function ScanScreen({ navigation, route }: Props) {
   const takePhoto = async () => {
     if (!cameraRef.current) return;
     triggerShutterFlash();
-    setLoadingMessage('Taking photo…');
+    setLoadingMessage(t('scan.takingPhoto'));
     setMode('loading');
 
     let base64: string | undefined;
@@ -113,8 +115,8 @@ export function ScanScreen({ navigation, route }: Props) {
       // Camera capture failed — fall through to manual fallback below.
     }
     if (!base64) {
-      Alert.alert('Could not identify product', 'Please enter the product details manually.', [
-        { text: 'OK', onPress: () => setMode('confirming') },
+      Alert.alert(t('scan.couldNotIdentifyTitle'), t('scan.couldNotIdentifyMessage'), [
+        { text: t('common.ok'), onPress: () => setMode('confirming') },
       ]);
       setProduct({
         barcode: pendingBarcode ?? '',
@@ -128,7 +130,7 @@ export function ScanScreen({ navigation, route }: Props) {
       return;
     }
 
-    setLoadingMessage('Identifying with AI…');
+    setLoadingMessage(t('scan.identifyingAI'));
     identifyProduct.mutate(
       { base64, barcode: pendingBarcode },
       {
@@ -140,8 +142,8 @@ export function ScanScreen({ navigation, route }: Props) {
           setMode('confirming');
         },
         onError: () => {
-          Alert.alert('Could not identify product', 'Please enter the product details manually.', [
-            { text: 'OK', onPress: () => setMode('confirming') },
+          Alert.alert(t('scan.couldNotIdentifyTitle'), t('scan.couldNotIdentifyMessage'), [
+            { text: t('common.ok'), onPress: () => setMode('confirming') },
           ]);
           setProduct({
             barcode: pendingBarcode ?? '',
@@ -174,8 +176,8 @@ export function ScanScreen({ navigation, route }: Props) {
             setTimeout(() => navigation.navigate('Main', { screen: 'Shopping' }), 300);
           },
           onError: (err) => {
-            const msg = isAppError(err) ? err.message : 'Could not add to shopping list.';
-            Alert.alert('Error', msg);
+            const msg = isAppError(err) ? err.message : t('scan.couldNotAddToList');
+            Alert.alert(t('common.error'), msg);
           },
         },
       );
@@ -189,8 +191,8 @@ export function ScanScreen({ navigation, route }: Props) {
           navigation.goBack();
         },
         onError: (err) => {
-          const msg = isAppError(err) ? err.message : 'Could not save product.';
-          Alert.alert('Error', msg);
+          const msg = isAppError(err) ? err.message : t('scan.couldNotSave');
+          Alert.alert(t('common.error'), msg);
         },
       },
     );
@@ -213,8 +215,8 @@ export function ScanScreen({ navigation, route }: Props) {
   if (!permission.granted) {
     return (
       <View style={styles.center}>
-        <Text style={styles.permText}>Camera access is required to scan barcodes.</Text>
-        <Button label="Grant access" onPress={requestPermission} />
+        <Text style={styles.permText}>{t('scan.cameraPermission')}</Text>
+        <Button label={t('common.grantAccess')} onPress={requestPermission} />
       </View>
     );
   }
@@ -232,7 +234,7 @@ export function ScanScreen({ navigation, route }: Props) {
       {mode === 'scanning' && (
         <View style={styles.overlay}>
           <View style={styles.scanFrame} />
-          <Text style={styles.hint}>Point at a barcode</Text>
+          <Text style={styles.hint}>{t('scan.pointAtBarcode')}</Text>
           <TouchableOpacity
             style={styles.manualBtn}
             onPress={() => {
@@ -248,7 +250,7 @@ export function ScanScreen({ navigation, route }: Props) {
               setMode('confirming');
             }}
           >
-            <Text style={styles.manualBtnText}>Enter manually</Text>
+            <Text style={styles.manualBtnText}>{t('scan.enterManually')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -270,14 +272,11 @@ export function ScanScreen({ navigation, route }: Props) {
           <View style={styles.overlayDim} />
           <View style={styles.photoPanel}>
             <View style={styles.photoPanelBadge}>
-              <Text style={styles.photoPanelBadgeText}>Barcode not in database</Text>
+              <Text style={styles.photoPanelBadgeText}>{t('scan.barcodeNotInDB')}</Text>
             </View>
-            <Text style={styles.photoPanelTitle}>Identify with AI</Text>
-            <Text style={styles.photoPanelBody}>
-              Point the camera at the product label and take a photo. Claude will identify it for
-              you.
-            </Text>
-            <Button label="Take photo" onPress={takePhoto} size="lg" fullWidth />
+            <Text style={styles.photoPanelTitle}>{t('scan.identifyWithAI')}</Text>
+            <Text style={styles.photoPanelBody}>{t('scan.identifyBody')}</Text>
+            <Button label={t('scan.takePhoto')} onPress={takePhoto} size="lg" fullWidth />
             <TouchableOpacity
               style={styles.skipBtn}
               onPress={() => {
@@ -293,7 +292,7 @@ export function ScanScreen({ navigation, route }: Props) {
                 setMode('confirming');
               }}
             >
-              <Text style={styles.skipText}>Enter details manually instead</Text>
+              <Text style={styles.skipText}>{t('scan.enterManuallyInstead')}</Text>
             </TouchableOpacity>
           </View>
         </>

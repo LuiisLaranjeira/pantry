@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/shared/ui';
 import type { StockItem } from '@/shared/types/domain';
@@ -24,6 +25,7 @@ export function StockListItem({
   onDelete,
   isDeleting,
 }: Props) {
+  const { t } = useTranslation();
   const { colors, elevation } = useTheme();
   const styles = useMemo(() => makeStyles(colors, elevation), [colors, elevation]);
 
@@ -53,8 +55,12 @@ export function StockListItem({
             {item.product.package_unit}
           </Text>
         )}
-        {!isDeleting && stockStatus === 'low' && <Text style={styles.lowBadge}>Low stock</Text>}
-        {!isDeleting && stockStatus === 'out' && <Text style={styles.outBadge}>Out of stock</Text>}
+        {!isDeleting && stockStatus === 'low' && (
+          <Text style={styles.lowBadge}>{t('stock.lowBadge')}</Text>
+        )}
+        {!isDeleting && stockStatus === 'out' && (
+          <Text style={styles.outBadge}>{t('stock.outBadge')}</Text>
+        )}
       </View>
 
       {isDeleting ? (

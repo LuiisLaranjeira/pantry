@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { formatCurrency } from '@/shared/lib/format';
 import { useTheme } from '@/shared/ui';
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function ShoppingListItemRow({ item, onToggleCheck, onEdit, onDelete }: Props) {
+  const { t } = useTranslation();
   const { colors, elevation } = useTheme();
   const styles = useMemo(() => makeStyles(colors, elevation), [colors, elevation]);
   return (
@@ -33,8 +35,9 @@ export function ShoppingListItemRow({ item, onToggleCheck, onEdit, onDelete }: P
           </Text>
         )}
         <Text style={styles.itemMeta}>
-          qty {item.quantity}
-          {item.unit_price != null ? ` · ${formatCurrency(item.unit_price)} each` : ''}
+          {item.unit_price != null
+            ? t('shopping.qtyEach', { qty: item.quantity, price: formatCurrency(item.unit_price) })
+            : t('shopping.qty', { qty: item.quantity })}
         </Text>
       </View>
       {item.unit_price != null && (

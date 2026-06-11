@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { Share, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import type { HouseholdWithCount } from '@/features/household/hooks/useHousehold';
 import { useProfileStyles } from '@/features/profile/components/styles';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function HouseholdSection({ household }: Props) {
+  const { t } = useTranslation();
   const styles = useProfileStyles();
   const { colors } = useTheme();
   const [codeCopied, setCodeCopied] = useState(false);
@@ -26,13 +28,13 @@ export function HouseholdSection({ household }: Props) {
   const shareCode = async () => {
     if (!household) return;
     await Share.share({
-      message: `Join my pantry household "${household.name}" on Pantry!\nInvite code: ${household.invite_code}`,
+      message: t('profile.shareMessage', { name: household.name, code: household.invite_code }),
     });
   };
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Household</Text>
+      <Text style={styles.sectionTitle}>{t('profile.householdTitle')}</Text>
       <View style={styles.card}>
         <View style={styles.row}>
           <Ionicons
@@ -42,7 +44,7 @@ export function HouseholdSection({ household }: Props) {
             style={styles.rowIcon}
           />
           <View style={styles.rowBody}>
-            <Text style={styles.rowLabel}>Name</Text>
+            <Text style={styles.rowLabel}>{t('profile.householdName')}</Text>
             <Text style={styles.rowValue}>{household?.name ?? '—'}</Text>
           </View>
         </View>
@@ -55,7 +57,7 @@ export function HouseholdSection({ household }: Props) {
             style={styles.rowIcon}
           />
           <View style={styles.rowBody}>
-            <Text style={styles.rowLabel}>Members</Text>
+            <Text style={styles.rowLabel}>{t('profile.householdMembers')}</Text>
             <Text style={styles.rowValue}>{household?.member_count ?? '—'}</Text>
           </View>
         </View>
@@ -68,7 +70,7 @@ export function HouseholdSection({ household }: Props) {
             style={styles.rowIcon}
           />
           <View style={styles.rowBody}>
-            <Text style={styles.rowLabel}>Invite code</Text>
+            <Text style={styles.rowLabel}>{t('profile.inviteCode')}</Text>
             <Text style={styles.inviteCode}>{household?.invite_code ?? '—'}</Text>
           </View>
           <TouchableOpacity onPress={copyCode} style={styles.iconBtn}>

@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 import type { AuthStackParamList } from '@/app/navigation/types';
 import { validateAuthForm } from '@/features/auth/lib/validation';
@@ -25,6 +26,7 @@ import { Button, TextField, useTheme } from '@/shared/ui';
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
 export function RegisterScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -47,19 +49,19 @@ export function RegisterScreen({ navigation }: Props) {
       {
         onSuccess: () => {
           Alert.alert(
-            'Check your email',
-            `We sent a confirmation link to ${trimmed}. Open it to activate your account, then sign in.`,
+            t('register.checkEmailTitle'),
+            t('register.checkEmailMessage', { email: trimmed }),
             [
               {
-                text: 'Go to sign in',
+                text: t('register.goToSignIn'),
                 onPress: () => navigation.navigate('Login', { email: trimmed }),
               },
             ],
           );
         },
         onError: (err) => {
-          const message = isAppError(err) ? err.message : 'Something went wrong. Try again.';
-          Alert.alert('Registration failed', message);
+          const message = isAppError(err) ? err.message : t('common.somethingWentWrong');
+          Alert.alert(t('register.failedTitle'), message);
         },
       },
     );
@@ -68,8 +70,8 @@ export function RegisterScreen({ navigation }: Props) {
   const handleGoogleSignIn = () => {
     signInWithGoogle.mutate(undefined, {
       onError: (err) => {
-        const message = isAppError(err) ? err.message : 'Google sign-in failed. Try again.';
-        Alert.alert('Google sign-in failed', message);
+        const message = isAppError(err) ? err.message : t('login.googleFailedMessage');
+        Alert.alert(t('login.googleFailedTitle'), message);
       },
     });
   };
@@ -90,12 +92,12 @@ export function RegisterScreen({ navigation }: Props) {
                 { color: colors.text.primary, fontWeight: typography.weight.bold },
               ]}
             >
-              Create account
+              {t('register.title')}
             </Text>
 
             <TextField
               containerStyle={styles.field}
-              placeholder="Email"
+              placeholder={t('login.email')}
               value={email}
               onChangeText={(t) => {
                 setEmail(t);
@@ -110,7 +112,7 @@ export function RegisterScreen({ navigation }: Props) {
             />
             <TextField
               containerStyle={styles.field}
-              placeholder="Password (min 6 characters)"
+              placeholder={t('register.passwordPlaceholder')}
               value={password}
               onChangeText={(t) => {
                 setPassword(t);
@@ -138,7 +140,7 @@ export function RegisterScreen({ navigation }: Props) {
             />
 
             <Button
-              label={signUp.isPending ? 'Creating account…' : 'Register'}
+              label={signUp.isPending ? t('register.registering') : t('register.register')}
               onPress={handleRegister}
               loading={signUp.isPending}
               disabled={!email || !password || isPending}
@@ -149,7 +151,9 @@ export function RegisterScreen({ navigation }: Props) {
 
             <View style={styles.dividerRow}>
               <View style={[styles.dividerLine, { backgroundColor: colors.border.subtle }]} />
-              <Text style={[styles.dividerText, { color: colors.text.muted }]}>or</Text>
+              <Text style={[styles.dividerText, { color: colors.text.muted }]}>
+                {t('common.or')}
+              </Text>
               <View style={[styles.dividerLine, { backgroundColor: colors.border.subtle }]} />
             </View>
 
@@ -165,13 +169,13 @@ export function RegisterScreen({ navigation }: Props) {
             >
               {signInWithGoogle.isPending ? (
                 <Text style={[styles.googleLabel, { color: colors.text.secondary }]}>
-                  Signing in…
+                  {t('login.signingIn')}
                 </Text>
               ) : (
                 <>
                   <Ionicons name="logo-google" size={18} color="#4285F4" />
                   <Text style={[styles.googleLabel, { color: colors.text.primary }]}>
-                    Continue with Google
+                    {t('login.continueWithGoogle')}
                   </Text>
                 </>
               )}
@@ -183,7 +187,7 @@ export function RegisterScreen({ navigation }: Props) {
               disabled={isPending}
             >
               <Text style={[styles.linkText, { color: colors.primary.base }]}>
-                Already have an account? Sign in
+                {t('register.alreadyHaveAccount')}
               </Text>
             </TouchableOpacity>
           </View>

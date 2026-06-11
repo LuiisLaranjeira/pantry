@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { useProfileStyles } from '@/features/profile/components/styles';
 import type { MonthData } from '@/features/profile/types';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function SpendingSection({ monthlyData }: Props) {
+  const { t } = useTranslation();
   const profileStyles = useProfileStyles();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -33,12 +35,12 @@ export function SpendingSection({ monthlyData }: Props) {
 
   return (
     <View style={profileStyles.section}>
-      <Text style={profileStyles.sectionTitle}>Monthly Spending</Text>
+      <Text style={profileStyles.sectionTitle}>{t('profile.spendingTitle')}</Text>
 
       <View style={profileStyles.card}>
         <View style={styles.statsRow}>
           <View style={styles.statCell}>
-            <Text style={styles.statLabel}>This month</Text>
+            <Text style={styles.statLabel}>{t('profile.thisMonth')}</Text>
             <Text style={styles.statValue}>
               {thisMonth.total > 0 ? formatCurrency(thisMonth.total) : '—'}
             </Text>
@@ -50,14 +52,14 @@ export function SpendingSection({ monthlyData }: Props) {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statCell}>
-            <Text style={styles.statLabel}>Last month</Text>
+            <Text style={styles.statLabel}>{t('profile.lastMonth')}</Text>
             <Text style={styles.statValue}>
               {lastMonth.total > 0 ? formatCurrency(lastMonth.total) : '—'}
             </Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statCell}>
-            <Text style={styles.statLabel}>Avg / month</Text>
+            <Text style={styles.statLabel}>{t('profile.avgMonth')}</Text>
             <Text style={styles.statValue}>{avg > 0 ? formatCurrency(avg) : '—'}</Text>
           </View>
         </View>
@@ -103,7 +105,7 @@ export function SpendingSection({ monthlyData }: Props) {
                     style={profileStyles.rowIcon}
                   />
                   <View style={profileStyles.rowBody}>
-                    <Text style={profileStyles.rowLabel}>Total trips tracked</Text>
+                    <Text style={profileStyles.rowLabel}>{t('profile.totalTrips')}</Text>
                   </View>
                   <Text style={profileStyles.rowValue}>
                     {active.reduce((s, m) => s + m.trips, 0)}
@@ -114,9 +116,7 @@ export function SpendingSection({ monthlyData }: Props) {
           </>
         ) : (
           <View style={styles.spendingEmpty}>
-            <Text style={styles.spendingEmptyText}>
-              Complete a shopping list with prices to see your spending history.
-            </Text>
+            <Text style={styles.spendingEmptyText}>{t('profile.spendingEmpty')}</Text>
           </View>
         )}
       </View>

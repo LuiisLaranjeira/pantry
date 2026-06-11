@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/shared/ui';
 
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function LowStockBanner({ count, isPending, onPress, onDismiss }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
@@ -22,9 +24,7 @@ export function LowStockBanner({ count, isPending, onPress, onDismiss }: Props) 
       activeOpacity={0.8}
     >
       <Ionicons name="cart-outline" size={18} color={colors.text.inverse} />
-      <Text style={styles.text}>
-        {count} item{count > 1 ? 's' : ''} low — add to shopping list
-      </Text>
+      <Text style={styles.text}>{t('stock.lowBanner', { count })}</Text>
       {isPending ? (
         <ActivityIndicator size="small" color={colors.text.inverse} style={styles.trailing} />
       ) : (

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { formatCurrency } from '@/shared/lib/format';
 import { useTheme } from '@/shared/ui';
@@ -10,11 +11,12 @@ interface Props {
 }
 
 export function TotalBar({ checkedCount, runningTotal }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.bar}>
-      <Text style={styles.label}>{checkedCount} checked</Text>
+      <Text style={styles.label}>{t('shopping.checkedLabel', { count: checkedCount })}</Text>
       <Text style={styles.amount}>{runningTotal > 0 ? formatCurrency(runningTotal) : '—'}</Text>
     </View>
   );

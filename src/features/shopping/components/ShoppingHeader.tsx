@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { IconButton, useTheme } from '@/shared/ui';
 
@@ -18,6 +19,7 @@ export function ShoppingHeader({
   onScanReceipt,
   onConfirmPurchase,
 }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
@@ -26,22 +28,22 @@ export function ShoppingHeader({
         icon="trash-outline"
         size={20}
         color={colors.danger.text}
-        accessibilityLabel="Delete list"
+        accessibilityLabel={t('shopping.deleteListLabel')}
         onPress={onDeleteList}
       />
-      <Text style={styles.title}>Shopping</Text>
+      <Text style={styles.title}>{t('shopping.title')}</Text>
       <View style={styles.rightRow}>
         <IconButton
           icon="receipt-outline"
           size={22}
           color={colors.primary.base}
-          accessibilityLabel="Scan receipt"
+          accessibilityLabel={t('shopping.scanReceiptLabel')}
           onPress={onScanReceipt}
         />
         <TouchableOpacity
           onPress={onConfirmPurchase}
           disabled={checkedCount === 0 || isPending}
-          accessibilityLabel="Confirm purchase"
+          accessibilityLabel={t('shopping.confirmPurchaseLabel')}
           style={[styles.confirmBtn, (checkedCount === 0 || isPending) && styles.disabled]}
         >
           {isPending ? (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Button, Sheet, TextField, useTheme } from '@/shared/ui';
 import type { PartialProduct } from '@/shared/types/domain';
@@ -32,6 +33,7 @@ export function ProductConfirmSheet({
   title,
   defaultQuantity,
 }: Props) {
+  const { t } = useTranslation();
   const { colors, typography } = useTheme();
   const defaultDest: Destination = fixedDestination ?? defaultDestination ?? 'stock';
   const [destination, setDestination] = useState<Destination>(defaultDest);
@@ -74,7 +76,7 @@ export function ProductConfirmSheet({
   };
 
   return (
-    <Sheet visible={visible} onRequestClose={onCancel} title={title ?? 'Add product'}>
+    <Sheet visible={visible} onRequestClose={onCancel} title={title ?? t('productSheet.title')}>
       {!fixedDestination && (
         <View style={[styles.toggle, { backgroundColor: colors.bg.default }]}>
           <TouchableOpacity
@@ -93,7 +95,7 @@ export function ProductConfirmSheet({
                 },
               ]}
             >
-              Pantry
+              {t('productSheet.pantry')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -112,7 +114,7 @@ export function ProductConfirmSheet({
                 },
               ]}
             >
-              Shopping list
+              {t('productSheet.shoppingList')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -121,31 +123,31 @@ export function ProductConfirmSheet({
       <ScrollView showsVerticalScrollIndicator={false}>
         <TextField
           containerStyle={styles.field}
-          label="Product name"
+          label={t('productSheet.productName')}
           value={name}
           onChangeText={setName}
-          placeholder="e.g. Tomato Sauce"
+          placeholder={t('productSheet.productNamePlaceholder')}
         />
         <TextField
           containerStyle={styles.field}
-          label="Brand (optional)"
+          label={t('productSheet.brand')}
           value={brand}
           onChangeText={setBrand}
-          placeholder="e.g. Heinz"
+          placeholder={t('productSheet.brandPlaceholder')}
         />
         <TextField
           containerStyle={styles.field}
-          label="Package size (optional)"
+          label={t('productSheet.packageSize')}
           value={packageUnit}
           onChangeText={setPackageUnit}
-          placeholder="e.g. 500g, 1L, 6-pack"
+          placeholder={t('productSheet.packageSizePlaceholder')}
         />
         <TextField
           containerStyle={styles.field}
-          label="Price per unit (optional)"
+          label={t('productSheet.price')}
           value={price}
           onChangeText={setPrice}
-          placeholder="e.g. 3.99"
+          placeholder={t('productSheet.pricePlaceholder')}
           keyboardType="decimal-pad"
         />
 
@@ -155,7 +157,7 @@ export function ProductConfirmSheet({
             { color: colors.text.secondary, fontWeight: typography.weight.semibold },
           ]}
         >
-          Quantity
+          {t('productSheet.quantity')}
         </Text>
         <View style={styles.qtyRow}>
           <TouchableOpacity
@@ -182,9 +184,16 @@ export function ProductConfirmSheet({
       </ScrollView>
 
       <View style={styles.actions}>
-        <Button label="Cancel" variant="secondary" onPress={onCancel} style={styles.cancelBtn} />
         <Button
-          label={destination === 'stock' ? 'Add to pantry' : 'Add to list'}
+          label={t('common.cancel')}
+          variant="secondary"
+          onPress={onCancel}
+          style={styles.cancelBtn}
+        />
+        <Button
+          label={
+            destination === 'stock' ? t('productSheet.addToPantry') : t('productSheet.addToList')
+          }
           onPress={handleConfirm}
           style={styles.confirmBtn}
         />

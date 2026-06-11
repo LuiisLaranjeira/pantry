@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { useProfileStyles } from '@/features/profile/components/styles';
 import { useTheme } from '@/shared/ui';
@@ -17,11 +18,12 @@ export function NotificationsSection({
   onToggle,
   onCheckNow,
 }: Props) {
+  const { t } = useTranslation();
   const styles = useProfileStyles();
   const { colors } = useTheme();
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Notifications</Text>
+      <Text style={styles.sectionTitle}>{t('profile.notificationsTitle')}</Text>
       <View style={styles.card}>
         <View style={styles.row}>
           <Ionicons
@@ -31,8 +33,8 @@ export function NotificationsSection({
             style={styles.rowIcon}
           />
           <View style={styles.rowBody}>
-            <Text style={styles.rowLabel}>Low stock alerts</Text>
-            <Text style={styles.rowSubLabel}>Notify when an item hits its threshold</Text>
+            <Text style={styles.rowLabel}>{t('profile.lowStockAlerts')}</Text>
+            <Text style={styles.rowSubLabel}>{t('profile.lowStockAlertsSub')}</Text>
           </View>
           <Switch
             value={notificationsOn}
@@ -52,10 +54,8 @@ export function NotificationsSection({
                 style={styles.rowIcon}
               />
               <View style={styles.rowBody}>
-                <Text style={styles.rowLabel}>Check low stock now</Text>
-                <Text style={styles.rowSubLabel}>
-                  Send a notification for any items already low
-                </Text>
+                <Text style={styles.rowLabel}>{t('profile.checkNow')}</Text>
+                <Text style={styles.rowSubLabel}>{t('profile.checkNowSub')}</Text>
               </View>
               {isCheckingLowStock ? (
                 <ActivityIndicator size="small" color={colors.text.muted} />

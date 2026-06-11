@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { useProfileStyles } from '@/features/profile/components/styles';
 import { useTheme } from '@/shared/ui';
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function LegalSection({ privacyUrl, termsUrl, onOpenUrl }: Props) {
+  const { t } = useTranslation();
   const styles = useProfileStyles();
   const { colors } = useTheme();
 
@@ -18,7 +20,7 @@ export function LegalSection({ privacyUrl, termsUrl, onOpenUrl }: Props) {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Legal</Text>
+      <Text style={styles.sectionTitle}>{t('profile.legalTitle')}</Text>
       <View style={styles.card}>
         {privacyUrl && (
           <TouchableOpacity style={styles.row} onPress={() => onOpenUrl(privacyUrl)}>
@@ -29,7 +31,7 @@ export function LegalSection({ privacyUrl, termsUrl, onOpenUrl }: Props) {
               style={styles.rowIcon}
             />
             <View style={styles.rowBody}>
-              <Text style={styles.rowLabel}>Privacy policy</Text>
+              <Text style={styles.rowLabel}>{t('profile.privacyPolicy')}</Text>
             </View>
             <Ionicons name="open-outline" size={16} color={colors.text.muted} />
           </TouchableOpacity>
@@ -44,7 +46,7 @@ export function LegalSection({ privacyUrl, termsUrl, onOpenUrl }: Props) {
               style={styles.rowIcon}
             />
             <View style={styles.rowBody}>
-              <Text style={styles.rowLabel}>Terms of service</Text>
+              <Text style={styles.rowLabel}>{t('profile.termsOfService')}</Text>
             </View>
             <Ionicons name="open-outline" size={16} color={colors.text.muted} />
           </TouchableOpacity>

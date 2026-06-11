@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/shared/ui';
 
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function StockSearchBar({ value, onChangeText, onBarcodePress }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
@@ -19,7 +21,7 @@ export function StockSearchBar({ value, onChangeText, onBarcodePress }: Props) {
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
-        placeholder="Search pantry…"
+        placeholder={t('searchBar.placeholder')}
         placeholderTextColor={colors.text.placeholder}
         clearButtonMode="while-editing"
         returnKeyType="search"

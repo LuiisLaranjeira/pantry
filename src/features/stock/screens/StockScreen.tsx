@@ -3,6 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -44,6 +45,7 @@ type Props = CompositeScreenProps<
 >;
 
 export function StockScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const { householdId } = useAppState();
   const { colors } = useTheme();
   const [search, setSearch] = useState('');
@@ -107,10 +109,10 @@ export function StockScreen({ navigation, route }: Props) {
   };
 
   const onDeleteItem = (item: StockItem) => {
-    Alert.alert('Remove from pantry', `Remove "${item.product.name}" from your pantry?`, [
-      { text: 'Cancel', style: 'cancel', onPress: () => setDeletingId(null) },
+    Alert.alert(t('stock.removeTitle'), t('stock.removeItemMessage', { name: item.product.name }), [
+      { text: t('common.cancel'), style: 'cancel', onPress: () => setDeletingId(null) },
       {
-        text: 'Remove',
+        text: t('stock.remove'),
         style: 'destructive',
         onPress: () => {
           setDeletingId(null);
@@ -121,10 +123,10 @@ export function StockScreen({ navigation, route }: Props) {
   };
 
   const onDeleteGroup = (group: GroupedStockItem) => {
-    Alert.alert('Remove from pantry', `Remove all "${group.name}" from your pantry?`, [
-      { text: 'Cancel', style: 'cancel', onPress: () => setDeletingGroupKey(null) },
+    Alert.alert(t('stock.removeTitle'), t('stock.removeGroupMessage', { name: group.name }), [
+      { text: t('common.cancel'), style: 'cancel', onPress: () => setDeletingGroupKey(null) },
       {
-        text: 'Remove',
+        text: t('stock.remove'),
         style: 'destructive',
         onPress: () => {
           setDeletingGroupKey(null);
@@ -157,8 +159,7 @@ export function StockScreen({ navigation, route }: Props) {
           setBannerDismissed(true);
           navigation.jumpTo('Shopping');
         },
-        onError: () =>
-          Alert.alert('Could not add', 'Failed to add low stock items to the shopping list.'),
+        onError: () => Alert.alert(t('common.couldNotAdd'), t('stock.couldNotAddLowStock')),
       },
     );
   };
@@ -178,8 +179,8 @@ export function StockScreen({ navigation, route }: Props) {
             navigation.jumpTo('Shopping');
           },
           onError: (err) => {
-            const msg = isAppError(err) ? err.message : 'Could not add to shopping list.';
-            Alert.alert('Could not add', msg);
+            const msg = isAppError(err) ? err.message : t('stock.couldNotAddToList');
+            Alert.alert(t('common.couldNotAdd'), msg);
           },
         },
       );
@@ -190,8 +191,8 @@ export function StockScreen({ navigation, route }: Props) {
       {
         onSuccess: () => setShowManual(false),
         onError: (err) => {
-          const msg = isAppError(err) ? err.message : 'Could not add to pantry.';
-          Alert.alert('Could not add', msg);
+          const msg = isAppError(err) ? err.message : t('stock.couldNotAddToPantry');
+          Alert.alert(t('common.couldNotAdd'), msg);
         },
       },
     );
@@ -210,10 +211,14 @@ export function StockScreen({ navigation, route }: Props) {
         <View style={styles.errorContainer}>
           <EmptyState
             icon="cloud-offline-outline"
-            title="Could not load pantry"
-            subtitle="Check your connection and try again."
+            title={t('stock.loadError')}
+            subtitle={t('stock.loadErrorSub')}
           />
-          <Button label="Retry" onPress={() => stockList.refetch()} style={styles.retryBtn} />
+          <Button
+            label={t('common.retry')}
+            onPress={() => stockList.refetch()}
+            style={styles.retryBtn}
+          />
         </View>
       </SafeAreaView>
     );
@@ -235,7 +240,7 @@ export function StockScreen({ navigation, route }: Props) {
     : groupedItems;
 
   const listHint = (
-    <Text style={[styles.listHint, { color: colors.text.muted }]}>Hold an item to remove it</Text>
+    <Text style={[styles.listHint, { color: colors.text.muted }]}>{t('stock.holdToRemove')}</Text>
   );
 
   return (
@@ -283,8 +288,10 @@ export function StockScreen({ navigation, route }: Props) {
           )}
           ListEmptyComponent={
             <EmptyState
-              title={query ? 'No results' : 'Pantry is empty'}
-              subtitle={query ? `Nothing matches "${search}".` : 'Scan a barcode or add manually.'}
+              title={query ? t('stock.noResults') : t('stock.empty')}
+              subtitle={
+                query ? t('stock.nothingMatches', { query: search }) : t('stock.emptySubtitle')
+              }
             />
           }
           ListFooterComponent={filteredGrouped.length > 0 ? listHint : null}
@@ -314,8 +321,10 @@ export function StockScreen({ navigation, route }: Props) {
           )}
           ListEmptyComponent={
             <EmptyState
-              title={query ? 'No results' : 'Pantry is empty'}
-              subtitle={query ? `Nothing matches "${search}".` : 'Scan a barcode or add manually.'}
+              title={query ? t('stock.noResults') : t('stock.empty')}
+              subtitle={
+                query ? t('stock.nothingMatches', { query: search }) : t('stock.emptySubtitle')
+              }
             />
           }
           ListFooterComponent={filtered.length > 0 ? listHint : null}
@@ -323,8 +332,12 @@ export function StockScreen({ navigation, route }: Props) {
       )}
 
       <View style={styles.fabRow}>
-        <Button label="+ Manual" variant="secondary" onPress={() => setShowManual(true)} />
-        <Button label="Scan" onPress={() => navigation.navigate('Scan')} />
+        <Button
+          label={t('stock.addManual')}
+          variant="secondary"
+          onPress={() => setShowManual(true)}
+        />
+        <Button label={t('common.scan')} onPress={() => navigation.navigate('Scan')} />
       </View>
 
       <ProductConfirmSheet

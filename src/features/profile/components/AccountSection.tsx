@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { useProfileStyles } from '@/features/profile/components/styles';
 import { useTheme } from '@/shared/ui';
@@ -19,11 +20,12 @@ export function AccountSection({
   onLeaveHousehold,
   onDeleteAccount,
 }: Props) {
+  const { t } = useTranslation();
   const styles = useProfileStyles();
   const { colors } = useTheme();
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Account</Text>
+      <Text style={styles.sectionTitle}>{t('profile.accountTitle')}</Text>
       <View style={styles.card}>
         <View style={styles.row}>
           <Ionicons
@@ -33,7 +35,7 @@ export function AccountSection({
             style={styles.rowIcon}
           />
           <View style={styles.rowBody}>
-            <Text style={styles.rowLabel}>Email</Text>
+            <Text style={styles.rowLabel}>{t('profile.accountEmail')}</Text>
             <Text style={styles.rowValue}>{email ?? '—'}</Text>
           </View>
         </View>
@@ -46,7 +48,7 @@ export function AccountSection({
             style={styles.rowIcon}
           />
           <View style={styles.rowBody}>
-            <Text style={[styles.rowLabel, styles.danger]}>Log out</Text>
+            <Text style={[styles.rowLabel, styles.danger]}>{t('profile.logOut')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.border.strong} />
         </TouchableOpacity>
@@ -59,8 +61,8 @@ export function AccountSection({
             style={styles.rowIcon}
           />
           <View style={styles.rowBody}>
-            <Text style={[styles.rowLabel, styles.danger]}>Leave household</Text>
-            <Text style={styles.rowSubLabel}>You&apos;ll need a new invite code to rejoin</Text>
+            <Text style={[styles.rowLabel, styles.danger]}>{t('profile.leaveHousehold')}</Text>
+            <Text style={styles.rowSubLabel}>{t('profile.leaveHouseholdSub')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.border.strong} />
         </TouchableOpacity>
@@ -73,8 +75,8 @@ export function AccountSection({
             style={styles.rowIcon}
           />
           <View style={styles.rowBody}>
-            <Text style={[styles.rowLabel, styles.danger]}>Delete account</Text>
-            <Text style={styles.rowSubLabel}>Permanently removes your account and data</Text>
+            <Text style={[styles.rowLabel, styles.danger]}>{t('profile.deleteAccount')}</Text>
+            <Text style={styles.rowSubLabel}>{t('profile.deleteAccountSub')}</Text>
           </View>
           {isDeletingAccount ? (
             <ActivityIndicator size="small" color={colors.danger.base} />

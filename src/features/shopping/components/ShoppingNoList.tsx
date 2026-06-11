@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { HistoryCard } from '@/features/shopping/components/HistoryCard';
 import { ReceiptModal } from '@/features/shopping/components/ReceiptModal';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function ShoppingNoList({ history, onStartList, isStarting }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [viewingReceipt, setViewingReceipt] = useState<HistoryRow | null>(null);
@@ -20,7 +22,7 @@ export function ShoppingNoList({ history, onStartList, isStarting }: Props) {
   return (
     <View style={styles.container}>
       <Button
-        label={isStarting ? 'Starting…' : 'Start shopping list'}
+        label={isStarting ? t('shopping.starting') : t('shopping.startList')}
         onPress={onStartList}
         loading={isStarting}
         size="lg"
@@ -28,7 +30,7 @@ export function ShoppingNoList({ history, onStartList, isStarting }: Props) {
       />
       {history.length > 0 && (
         <>
-          <Text style={styles.historyTitle}>Past lists</Text>
+          <Text style={styles.historyTitle}>{t('shopping.pastLists')}</Text>
           <FlatList
             data={history}
             keyExtractor={(l) => l.id}

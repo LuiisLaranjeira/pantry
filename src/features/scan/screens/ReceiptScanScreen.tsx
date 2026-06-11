@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -31,12 +32,13 @@ type Props = NativeStackScreenProps<AppStackParamList, 'ReceiptScan'>;
 type Mode = 'capture' | 'loading' | 'review';
 
 export function ReceiptScanScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { householdId } = useAppState();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [permission, requestPermission] = useCameraPermissions();
   const [mode, setMode] = useState<Mode>('capture');
-  const [loadingMessage, setLoadingMessage] = useState('Reading receipt…');
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [storeName, setStoreName] = useState<string | null>(null);
   const [reviewItems, setReviewItems] = useState<ReceiptReviewItem[]>([]);
 
@@ -64,7 +66,7 @@ export function ReceiptScanScreen({ navigation }: Props) {
     if (!cameraRef.current || processingRef.current) return;
     processingRef.current = true;
     triggerFlash();
-    setLoadingMessage('Taking photo…');
+    setLoadingMessage(t('scan.takingPhoto'));
     setMode('loading');
 
     let photoUri: string | undefined;
@@ -79,15 +81,13 @@ export function ReceiptScanScreen({ navigation }: Props) {
       // Reset mode before the Alert so processingRef is cleared regardless of
       // how the Alert is dismissed (button press OR Android back button).
       setMode('capture');
-      Alert.alert(
-        'Could not read receipt',
-        'Try again with better lighting, keeping the full receipt within the frame.',
-        [{ text: 'Try again' }],
-      );
+      Alert.alert(t('scan.couldNotReadTitle'), t('scan.couldNotReadMessage'), [
+        { text: t('scan.tryAgain') },
+      ]);
       return;
     }
 
-    setLoadingMessage('Reading text…');
+    setLoadingMessage(t('scan.readingText'));
     parseReceipt.mutate(photoUri, {
       onSuccess: (parsed) => {
         setStoreName(parsed.store);
@@ -104,11 +104,9 @@ export function ReceiptScanScreen({ navigation }: Props) {
       },
       onError: () => {
         setMode('capture');
-        Alert.alert(
-          'Could not read receipt',
-          'Try again with better lighting, keeping the full receipt within the frame.',
-          [{ text: 'Try again' }],
-        );
+        Alert.alert(t('scan.couldNotReadTitle'), t('scan.couldNotReadMessage'), [
+          { text: t('scan.tryAgain') },
+        ]);
       },
     });
   };
@@ -120,7 +118,7 @@ export function ReceiptScanScreen({ navigation }: Props) {
   const confirm = () => {
     const selected = reviewItems.filter((i) => i.selected && i.name.trim());
     if (selected.length === 0) {
-      Alert.alert('Nothing selected', 'Select at least one item to add.');
+      Alert.alert(t('scan.nothingSelected'), t('scan.nothingSelectedMessage'));
       return;
     }
     const items = selected.map((item) => {
@@ -137,8 +135,8 @@ export function ReceiptScanScreen({ navigation }: Props) {
       {
         onSuccess: () => navigation.goBack(),
         onError: (err) => {
-          const msg = isAppError(err) ? err.message : 'Could not add items.';
-          Alert.alert('Error', msg);
+          const msg = isAppError(err) ? err.message : t('scan.couldNotAddItems');
+          Alert.alert(t('common.error'), msg);
         },
       },
     );
@@ -155,8 +153,8 @@ export function ReceiptScanScreen({ navigation }: Props) {
   if (!permission.granted) {
     return (
       <View style={styles.center}>
-        <Text style={styles.permText}>Camera access is required to scan receipts.</Text>
-        <Button label="Grant access" onPress={requestPermission} />
+        <Text style={styles.permText}>{t('scan.receiptCameraPermission')}</Text>
+        <Button label={t('common.grantAccess')} onPress={requestPermission} />
       </View>
     );
   }
@@ -187,9 +185,9 @@ export function ReceiptScanScreen({ navigation }: Props) {
         />
 
         <View style={styles.footer}>
-          <Button label="Retake" variant="secondary" onPress={() => setMode('capture')} />
+          <Button label={t('scan.retake')} variant="secondary" onPress={() => setMode('capture')} />
           <Button
-            label={`Add ${selectedCount} item${selectedCount !== 1 ? 's' : ''}`}
+            label={t('scan.addItems', { count: selectedCount })}
             onPress={confirm}
             loading={saving}
             disabled={selectedCount === 0}
@@ -211,7 +209,7 @@ export function ReceiptScanScreen({ navigation }: Props) {
       {mode === 'capture' && (
         <View style={styles.captureOverlay}>
           <View style={styles.receiptGuide}>
-            <Text style={styles.guideText}>Align full receipt within frame</Text>
+            <Text style={styles.guideText}>{t('scan.alignReceipt')}</Text>
           </View>
           <TouchableOpacity style={styles.shutterBtn} onPress={takePhoto}>
             <View style={styles.shutterInner} />

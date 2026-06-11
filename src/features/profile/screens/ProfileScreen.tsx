@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, ScrollView } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppState } from '@/app/providers/AppStateProvider';
@@ -33,6 +34,7 @@ import { isAppError } from '@/shared/api/errors';
 import { useTheme } from '@/shared/ui';
 
 export function ProfileScreen() {
+  const { t } = useTranslation();
   const { householdId, refresh } = useAppState();
   const styles = useProfileStyles();
   const { colors } = useTheme();
@@ -66,26 +68,22 @@ export function ProfileScreen() {
 
   const onUpdatePrefs = (patch: { country?: string; grouped_view?: boolean }) =>
     updatePrefs.mutate(patch, {
-      onError: () =>
-        Alert.alert(
-          'Could not save',
-          'Household settings failed to save. Make sure the DB migration has been applied.',
-        ),
+      onError: () => Alert.alert(t('profile.couldNotSave'), t('profile.couldNotSaveMessage')),
     });
 
   const onExportStock = () =>
     exportStock.mutate(undefined, {
-      onError: () => Alert.alert('Export failed', 'Could not export pantry data.'),
+      onError: () => Alert.alert(t('profile.exportFailed'), t('profile.exportStockFailed')),
     });
 
   const onExportHistory = () =>
     exportHistory.mutate(undefined, {
       onError: (err) => {
         if (isAppError(err) && err.code === 'not_found') {
-          Alert.alert('No history', err.message);
+          Alert.alert(t('profile.noHistory'), err.message);
           return;
         }
-        Alert.alert('Export failed', 'Could not export shopping history.');
+        Alert.alert(t('profile.exportFailed'), t('profile.exportHistoryFailed'));
       },
     });
 
@@ -93,7 +91,7 @@ export function ProfileScreen() {
     toggleNotifs.mutate(value, {
       onSuccess: (granted) => {
         if (value && !granted) {
-          Alert.alert('Permission denied', 'Enable notifications in your device settings.');
+          Alert.alert(t('profile.permissionDenied'), t('profile.enableNotifications'));
         }
       },
     });
@@ -101,55 +99,55 @@ export function ProfileScreen() {
   const onCheckLowStock = () =>
     checkLowStock.mutate(undefined, {
       onSuccess: ({ low }) => {
-        if (low.length === 0) Alert.alert('All good!', 'No items are low on stock.');
+        if (low.length === 0) Alert.alert(t('profile.allGood'), t('profile.noLowStock'));
       },
     });
 
   const onLogout = () =>
-    Alert.alert('Log out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('profile.logOutTitle'), t('profile.logOutMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Log out',
+        text: t('profile.logOutConfirm'),
         style: 'destructive',
         onPress: () => signOut.mutate(undefined, { onSuccess: () => refresh() }),
       },
     ]);
 
   const onLeaveHousehold = () =>
-    Alert.alert('Leave household', `Leave "${hh?.name}"? You will need an invite code to rejoin.`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Leave',
-        style: 'destructive',
-        onPress: () =>
-          leaveHousehold.mutate(undefined, {
-            onError: (err) => {
-              const msg = isAppError(err) ? err.message : 'Could not leave household.';
-              Alert.alert('Error', msg);
-            },
-          }),
-      },
-    ]);
-
-  const onDeleteAccount = () =>
     Alert.alert(
-      'Delete account',
-      'This permanently deletes your account, your data, and any households where you are the only member. This cannot be undone.',
+      t('profile.leaveHouseholdTitle'),
+      t('profile.leaveHouseholdMessage', { name: hh?.name ?? '' }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete account',
+          text: t('profile.leaveConfirm'),
           style: 'destructive',
           onPress: () =>
-            deleteAccount.mutate(undefined, {
+            leaveHousehold.mutate(undefined, {
               onError: (err) => {
-                const msg = isAppError(err) ? err.message : 'Could not delete account.';
-                Alert.alert('Delete failed', msg);
+                const msg = isAppError(err) ? err.message : t('common.somethingWentWrong');
+                Alert.alert(t('common.error'), msg);
               },
             }),
         },
       ],
     );
+
+  const onDeleteAccount = () =>
+    Alert.alert(t('profile.deleteAccountTitle'), t('profile.deleteAccountMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('profile.deleteAccountConfirm'),
+        style: 'destructive',
+        onPress: () =>
+          deleteAccount.mutate(undefined, {
+            onError: (err) => {
+              const msg = isAppError(err) ? err.message : t('common.somethingWentWrong');
+              Alert.alert(t('profile.deleteAccountFailed'), msg);
+            },
+          }),
+      },
+    ]);
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
