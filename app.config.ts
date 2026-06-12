@@ -1,5 +1,3 @@
-import { withAppBuildGradle } from 'expo/config-plugins';
-
 type Variant = 'development' | 'preview' | 'production';
 
 const EAS_PROJECT_ID = 'e499f549-e0a5-4ef6-9cbd-365c5251a97d';
@@ -84,12 +82,4 @@ const config: any = {
   },
 };
 
-// Expo SDK 56 template expects hermes-compiler (added in RN 0.85.3) but this project
-// uses RN 0.81.5 which bundles hermesc at react-native/sdks/hermesc instead.
-export default withAppBuildGradle(config, (cfg) => {
-  cfg.modResults.contents = cfg.modResults.contents.replace(
-    `hermesCommand = new File(["node", "--print", "require.resolve('hermes-compiler/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/hermesc/%OS-BIN%/hermesc"`,
-    `hermesCommand = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"`,
-  );
-  return cfg;
-});
+export default config;
