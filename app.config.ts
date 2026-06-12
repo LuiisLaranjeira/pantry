@@ -1,4 +1,4 @@
-import type { ExpoConfig } from 'expo/config';
+import { withAppBuildGradle } from 'expo/config-plugins';
 
 type Variant = 'development' | 'preview' | 'production';
 
@@ -23,7 +23,8 @@ function appName(): string {
   return `${BASE_NAME} (Dev)`;
 }
 
-const config: ExpoConfig = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const config: any = {
   name: appName(),
   slug: 'pantry',
   version: '1.0.0',
@@ -48,7 +49,6 @@ const config: ExpoConfig = {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
-    edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     permissions: ['android.permission.CAMERA', 'android.permission.RECORD_AUDIO'],
     package: bundleIdentifier(),
@@ -84,4 +84,12 @@ const config: ExpoConfig = {
   },
 };
 
-export default config;
+// Expo SDK 56 template expects hermes-compiler (added in RN 0.85.3) but this project
+// uses RN 0.81.5 which bundles hermesc at react-native/sdks/hermesc instead.
+export default withAppBuildGradle(config, (cfg) => {
+  cfg.modResults.contents = cfg.modResults.contents.replace(
+    `hermesCommand = new File(["node", "--print", "require.resolve('hermes-compiler/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/hermesc/%OS-BIN%/hermesc"`,
+    `hermesCommand = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"`,
+  );
+  return cfg;
+});
