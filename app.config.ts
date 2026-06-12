@@ -63,6 +63,8 @@ const config: any = {
       },
     ],
     ['expo-notifications', { iosDisplayInForeground: true }],
+    'expo-sharing',
+    'expo-status-bar',
     '@sentry/react-native',
   ],
   updates: {
