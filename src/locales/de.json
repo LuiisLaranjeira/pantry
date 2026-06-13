@@ -79,12 +79,15 @@
     "noResults": "Keine Ergebnisse",
     "nothingMatches": "Nichts entspricht \"{{query}}\".",
     "emptySubtitle": "Scanne einen Barcode oder füge manuell hinzu.",
-    "holdToRemove": "Gedrückt halten zum Entfernen",
+    "holdToRemove": "Halten zum Bearbeiten oder Löschen",
     "addManual": "+ Manuell",
     "lowBadge": "Wenig Bestand",
     "outBadge": "Nicht vorrätig",
     "lowBanner_one": "{{count}} Artikel niedrig — zur Liste hinzufügen",
-    "lowBanner_other": "{{count}} Artikel niedrig — zur Liste hinzufügen"
+    "lowBanner_other": "{{count}} Artikel niedrig — zur Liste hinzufügen",
+    "editItem": "Artikel bearbeiten",
+    "threshold": "Mindestbestand",
+    "thresholdHint": "Benachrichtigung wenn die Menge diese Zahl erreicht"
   },
   "shopping": {
     "title": "Einkaufen",

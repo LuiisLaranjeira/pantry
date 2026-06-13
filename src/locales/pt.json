@@ -79,12 +79,15 @@
     "noResults": "Sem resultados",
     "nothingMatches": "Nada corresponde a \"{{query}}\".",
     "emptySubtitle": "Digitalize um código de barras ou adicione manualmente.",
-    "holdToRemove": "Mantenha premido para remover",
+    "holdToRemove": "Mantenha premido para editar ou remover",
     "addManual": "+ Manual",
     "lowBadge": "Stock baixo",
     "outBadge": "Sem stock",
     "lowBanner_one": "{{count}} item em baixo — adicionar à lista",
-    "lowBanner_other": "{{count}} itens em baixo — adicionar à lista"
+    "lowBanner_other": "{{count}} itens em baixo — adicionar à lista",
+    "editItem": "Editar item",
+    "threshold": "Limite de stock baixo",
+    "thresholdHint": "Alerta quando a quantidade atinge este número"
   },
   "shopping": {
     "title": "Compras",

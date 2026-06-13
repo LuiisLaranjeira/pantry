@@ -79,12 +79,15 @@
     "noResults": "Aucun résultat",
     "nothingMatches": "Rien ne correspond à \"{{query}}\".",
     "emptySubtitle": "Scannez un code-barres ou ajoutez manuellement.",
-    "holdToRemove": "Maintenez pour retirer",
+    "holdToRemove": "Maintenir pour modifier ou supprimer",
     "addManual": "+ Manuel",
     "lowBadge": "Stock bas",
     "outBadge": "Rupture de stock",
     "lowBanner_one": "{{count}} article en bas — ajouter à la liste",
-    "lowBanner_other": "{{count}} articles en bas — ajouter à la liste"
+    "lowBanner_other": "{{count}} articles en bas — ajouter à la liste",
+    "editItem": "Modifier l'article",
+    "threshold": "Seuil de stock bas",
+    "thresholdHint": "Alerte quand la quantité atteint ce nombre"
   },
   "shopping": {
     "title": "Courses",

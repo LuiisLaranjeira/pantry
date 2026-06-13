@@ -79,12 +79,15 @@
     "noResults": "无结果",
     "nothingMatches": "没有匹配\"{{query}}\"的内容。",
     "emptySubtitle": "扫描条形码或手动添加。",
-    "holdToRemove": "长按以移除",
+    "holdToRemove": "长按以编辑或移除",
     "addManual": "+ 手动",
     "lowBadge": "库存不足",
     "outBadge": "缺货",
     "lowBanner_one": "{{count}} 件库存不足 — 添加到清单",
-    "lowBanner_other": "{{count}} 件库存不足 — 添加到清单"
+    "lowBanner_other": "{{count}} 件库存不足 — 添加到清单",
+    "editItem": "编辑商品",
+    "threshold": "低库存阈值",
+    "thresholdHint": "当数量达到此数时发出提醒"
   },
   "shopping": {
     "title": "购物",

@@ -96,6 +96,23 @@ export const stockRepo = {
     if (error) throw mapSupabaseError(error, 'Could not add to pantry.');
   },
 
+  async updateThreshold(id: string, threshold: number): Promise<void> {
+    const { error } = await supabase
+      .from('stock_items')
+      .update({ low_stock_threshold: threshold })
+      .eq('id', id);
+    if (error) throw mapSupabaseError(error, 'Could not update threshold.');
+  },
+
+  async updateManyThresholds(ids: string[], threshold: number): Promise<void> {
+    if (ids.length === 0) return;
+    const { error } = await supabase
+      .from('stock_items')
+      .update({ low_stock_threshold: threshold })
+      .in('id', ids);
+    if (error) throw mapSupabaseError(error, 'Could not update threshold.');
+  },
+
   async delete(id: string): Promise<void> {
     const { error } = await supabase.from('stock_items').delete().eq('id', id);
     if (error) throw mapSupabaseError(error, 'Could not remove item.');

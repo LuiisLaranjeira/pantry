@@ -79,12 +79,15 @@
     "noResults": "No results",
     "nothingMatches": "Nothing matches \"{{query}}\".",
     "emptySubtitle": "Scan a barcode or add manually.",
-    "holdToRemove": "Hold an item to remove it",
+    "holdToRemove": "Hold to edit or remove",
     "addManual": "+ Manual",
     "lowBadge": "Low stock",
     "outBadge": "Out of stock",
     "lowBanner_one": "{{count}} item low — add to shopping list",
-    "lowBanner_other": "{{count}} items low — add to shopping list"
+    "lowBanner_other": "{{count}} items low — add to shopping list",
+    "editItem": "Edit item",
+    "threshold": "Low-stock threshold",
+    "thresholdHint": "Alert when quantity reaches this number"
   },
   "shopping": {
     "title": "Shopping",

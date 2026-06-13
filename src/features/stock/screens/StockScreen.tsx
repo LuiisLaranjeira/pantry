@@ -25,6 +25,7 @@ import {
 } from '@/features/shopping/hooks/useAddLowStockToList';
 import { GroupedStockCard } from '@/features/stock/components/GroupedStockCard';
 import { LowStockBanner } from '@/features/stock/components/LowStockBanner';
+import { StockItemEditSheet } from '@/features/stock/components/StockItemEditSheet';
 import { StockListItem } from '@/features/stock/components/StockListItem';
 import { StockSearchBar } from '@/features/stock/components/StockSearchBar';
 import { deriveGroupedItems, pickHighestQtyMember } from '@/features/stock/domain/grouping';
@@ -33,6 +34,7 @@ import { useAdjustStockQuantity } from '@/features/stock/hooks/useAdjustStockQua
 import { useDeleteStockGroup } from '@/features/stock/hooks/useDeleteStockGroup';
 import { useDeleteStockItem } from '@/features/stock/hooks/useDeleteStockItem';
 import { useStockList } from '@/features/stock/hooks/useStockList';
+import { useUpdateStockThreshold } from '@/features/stock/hooks/useUpdateStockThreshold';
 import { isAppError } from '@/shared/api/errors';
 import { ProductConfirmSheet, type Destination } from '@/shared/components/ProductConfirmSheet';
 import { Button, EmptyState, useTheme } from '@/shared/ui';
@@ -49,8 +51,8 @@ export function StockScreen({ navigation, route }: Props) {
   const { householdId } = useAppState();
   const { colors } = useTheme();
   const [search, setSearch] = useState('');
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [deletingGroupKey, setDeletingGroupKey] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<StockItem | null>(null);
+  const [editingGroup, setEditingGroup] = useState<GroupedStockItem | null>(null);
   const [showManual, setShowManual] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
@@ -62,6 +64,7 @@ export function StockScreen({ navigation, route }: Props) {
   const addStockManual = useAddStockFromManual(householdId);
   const addListManual = useAddItemFromManual(householdId);
   const addLowToList = useAddLowStockToList(householdId);
+  const updateThreshold = useUpdateStockThreshold(householdId);
 
   const items = useMemo(() => stockList.data ?? [], [stockList.data]);
   const groupedView = household.data?.grouped_view ?? false;
@@ -110,12 +113,12 @@ export function StockScreen({ navigation, route }: Props) {
 
   const onDeleteItem = (item: StockItem) => {
     Alert.alert(t('stock.removeTitle'), t('stock.removeItemMessage', { name: item.product.name }), [
-      { text: t('common.cancel'), style: 'cancel', onPress: () => setDeletingId(null) },
+      { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('stock.remove'),
         style: 'destructive',
         onPress: () => {
-          setDeletingId(null);
+          setEditingItem(null);
           deleteItem.mutate(item.id);
         },
       },
@@ -124,12 +127,12 @@ export function StockScreen({ navigation, route }: Props) {
 
   const onDeleteGroup = (group: GroupedStockItem) => {
     Alert.alert(t('stock.removeTitle'), t('stock.removeGroupMessage', { name: group.name }), [
-      { text: t('common.cancel'), style: 'cancel', onPress: () => setDeletingGroupKey(null) },
+      { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('stock.remove'),
         style: 'destructive',
         onPress: () => {
-          setDeletingGroupKey(null);
+          setEditingGroup(null);
           deleteGroup.mutate(group.members.map((m) => m.id));
         },
       },
@@ -280,10 +283,7 @@ export function StockScreen({ navigation, route }: Props) {
             <GroupedStockCard
               group={group}
               onAdjust={(delta) => onAdjustGroup(group, delta)}
-              onLongPress={() => setDeletingGroupKey(group.key)}
-              onCancelDelete={() => setDeletingGroupKey(null)}
-              onDelete={() => onDeleteGroup(group)}
-              isDeleting={deletingGroupKey === group.key}
+              onLongPress={() => setEditingGroup(group)}
             />
           )}
           ListEmptyComponent={
@@ -313,10 +313,7 @@ export function StockScreen({ navigation, route }: Props) {
               item={item}
               onIncrease={() => onAdjustItem(item, 1)}
               onDecrease={() => onAdjustItem(item, -1)}
-              onLongPress={() => setDeletingId(item.id)}
-              onCancelDelete={() => setDeletingId(null)}
-              onDelete={() => onDeleteItem(item)}
-              isDeleting={deletingId === item.id}
+              onLongPress={() => setEditingItem(item)}
             />
           )}
           ListEmptyComponent={
@@ -345,6 +342,36 @@ export function StockScreen({ navigation, route }: Props) {
         product={EMPTY_PRODUCT}
         onConfirm={onManualConfirm}
         onCancel={() => setShowManual(false)}
+      />
+
+      <StockItemEditSheet
+        visible={editingItem !== null}
+        name={editingItem?.product.name ?? ''}
+        currentThreshold={editingItem?.low_stock_threshold ?? 1}
+        isSaving={updateThreshold.isPending}
+        onSave={(threshold) =>
+          updateThreshold.mutate(
+            { ids: [editingItem!.id], threshold },
+            { onSuccess: () => setEditingItem(null) },
+          )
+        }
+        onDelete={() => onDeleteItem(editingItem!)}
+        onClose={() => setEditingItem(null)}
+      />
+
+      <StockItemEditSheet
+        visible={editingGroup !== null}
+        name={editingGroup?.name ?? ''}
+        currentThreshold={editingGroup?.low_stock_threshold ?? 1}
+        isSaving={updateThreshold.isPending}
+        onSave={(threshold) =>
+          updateThreshold.mutate(
+            { ids: editingGroup!.members.map((m) => m.id), threshold },
+            { onSuccess: () => setEditingGroup(null) },
+          )
+        }
+        onDelete={() => onDeleteGroup(editingGroup!)}
+        onClose={() => setEditingGroup(null)}
       />
     </SafeAreaView>
   );
