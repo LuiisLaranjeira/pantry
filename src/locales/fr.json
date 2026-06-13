@@ -16,7 +16,8 @@
     "scan": "Scanner",
     "grantAccess": "Accorder l'accès",
     "somethingWentWrong": "Quelque chose a mal tourné. Réessayez.",
-    "couldNotAdd": "Impossible d'ajouter"
+    "couldNotAdd": "Impossible d'ajouter",
+    "save": "Enregistrer"
   },
   "time": {
     "justNow": "à l'instant",

@@ -20,6 +20,7 @@ interface Props {
   fixedDestination?: Destination;
   defaultDestination?: Destination;
   title?: string;
+  confirmLabel?: string;
   defaultQuantity?: number;
 }
 
@@ -31,6 +32,7 @@ export function ProductConfirmSheet({
   fixedDestination,
   defaultDestination,
   title,
+  confirmLabel,
   defaultQuantity,
 }: Props) {
   const { t } = useTranslation();
@@ -192,7 +194,8 @@ export function ProductConfirmSheet({
         />
         <Button
           label={
-            destination === 'stock' ? t('productSheet.addToPantry') : t('productSheet.addToList')
+            confirmLabel ??
+            (destination === 'stock' ? t('productSheet.addToPantry') : t('productSheet.addToList'))
           }
           onPress={handleConfirm}
           style={styles.confirmBtn}

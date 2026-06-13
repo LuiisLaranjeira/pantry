@@ -360,6 +360,7 @@ export function ShoppingScreen({ navigation }: Props) {
         product={editProduct}
         fixedDestination="list"
         title={t('shopping.editItem')}
+        confirmLabel={t('common.save')}
         defaultQuantity={editingItem?.quantity ?? 1}
         onConfirm={handleSaveEdit}
         onCancel={() => setEditingItem(null)}

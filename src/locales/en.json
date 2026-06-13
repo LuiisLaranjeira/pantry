@@ -16,7 +16,8 @@
     "scan": "Scan",
     "grantAccess": "Grant access",
     "somethingWentWrong": "Something went wrong. Try again.",
-    "couldNotAdd": "Could not add"
+    "couldNotAdd": "Could not add",
+    "save": "Save"
   },
   "time": {
     "justNow": "just now",

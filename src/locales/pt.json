@@ -16,7 +16,8 @@
     "scan": "Digitalizar",
     "grantAccess": "Conceder acesso",
     "somethingWentWrong": "Algo correu mal. Tente novamente.",
-    "couldNotAdd": "Não foi possível adicionar"
+    "couldNotAdd": "Não foi possível adicionar",
+    "save": "Guardar"
   },
   "time": {
     "justNow": "agora mesmo",

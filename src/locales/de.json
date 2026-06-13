@@ -16,7 +16,8 @@
     "scan": "Scannen",
     "grantAccess": "Zugriff gewähren",
     "somethingWentWrong": "Etwas ist schiefgelaufen. Versuche es erneut.",
-    "couldNotAdd": "Konnte nicht hinzufügen"
+    "couldNotAdd": "Konnte nicht hinzufügen",
+    "save": "Speichern"
   },
   "time": {
     "justNow": "gerade eben",

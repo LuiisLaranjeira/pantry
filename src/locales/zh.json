@@ -16,7 +16,8 @@
     "scan": "扫描",
     "grantAccess": "授予访问权限",
     "somethingWentWrong": "出了点问题，请重试。",
-    "couldNotAdd": "无法添加"
+    "couldNotAdd": "无法添加",
+    "save": "保存"
   },
   "time": {
     "justNow": "刚刚",
