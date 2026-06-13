@@ -1,4 +1,9 @@
 {
+  "nav": {
+    "pantry": "储藏室",
+    "shopping": "购物",
+    "profile": "个人资料"
+  },
   "common": {
     "cancel": "取消",
     "notSet": "未设置",

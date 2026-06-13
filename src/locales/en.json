@@ -1,4 +1,9 @@
 {
+  "nav": {
+    "pantry": "Pantry",
+    "shopping": "Shopping",
+    "profile": "Profile"
+  },
   "common": {
     "cancel": "Cancel",
     "notSet": "Not set",

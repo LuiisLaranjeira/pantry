@@ -1,4 +1,9 @@
 {
+  "nav": {
+    "pantry": "Vorratskammer",
+    "shopping": "Einkaufen",
+    "profile": "Profil"
+  },
   "common": {
     "cancel": "Abbrechen",
     "notSet": "Nicht festgelegt",

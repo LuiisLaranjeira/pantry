@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useTranslation } from 'react-i18next';
 
 import { ProfileScreen } from '@/features/profile/screens/ProfileScreen';
 import { ShoppingScreen } from '@/features/shopping/screens/ShoppingScreen';
@@ -10,6 +11,8 @@ import type { MainTabsParamList } from './types';
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 export function MainTabs() {
+  const { t } = useTranslation();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -22,7 +25,7 @@ export function MainTabs() {
         name="Pantry"
         component={StockScreen}
         options={{
-          title: 'Pantry',
+          title: t('nav.pantry'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="basket-outline" size={size} color={color} />
           ),
@@ -32,7 +35,7 @@ export function MainTabs() {
         name="Shopping"
         component={ShoppingScreen}
         options={{
-          title: 'Shopping',
+          title: t('nav.shopping'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="cart-outline" size={size} color={color} />
           ),
@@ -42,7 +45,7 @@ export function MainTabs() {
         name="Profile"
         component={ProfileScreen}
         options={{
-          title: 'Profile',
+          title: t('nav.profile'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),

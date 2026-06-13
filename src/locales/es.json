@@ -1,4 +1,9 @@
 {
+  "nav": {
+    "pantry": "Despensa",
+    "shopping": "Compras",
+    "profile": "Perfil"
+  },
   "common": {
     "cancel": "Cancelar",
     "notSet": "No definido",

@@ -1,4 +1,9 @@
 {
+  "nav": {
+    "pantry": "Garde-manger",
+    "shopping": "Courses",
+    "profile": "Profil"
+  },
   "common": {
     "cancel": "Annuler",
     "notSet": "Non défini",
