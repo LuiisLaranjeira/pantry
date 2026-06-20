@@ -1,7 +1,13 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
+import {
+  PRODUCT_CATEGORIES,
+  categoryLabel,
+  isProductCategory,
+} from '@/shared/constants/categories';
 import { Button, Sheet, TextField, useTheme } from '@/shared/ui';
 import type { PartialProduct } from '@/shared/types/domain';
 
@@ -36,12 +42,14 @@ export function ProductConfirmSheet({
   defaultQuantity,
 }: Props) {
   const { t } = useTranslation();
-  const { colors, typography } = useTheme();
+  const { colors, radius, typography } = useTheme();
   const defaultDest: Destination = fixedDestination ?? defaultDestination ?? 'stock';
   const [destination, setDestination] = useState<Destination>(defaultDest);
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('');
   const [packageUnit, setPackageUnit] = useState('');
+  const [category, setCategory] = useState<string | null>(null);
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState('');
   const [openedFor, setOpenedFor] = useState<PartialProduct | null>(null);
@@ -53,6 +61,10 @@ export function ProductConfirmSheet({
     setName(product.name ?? '');
     setBrand(product.brand ?? '');
     setPackageUnit(product.package_unit ?? '');
+    // Preselect only when the stored value is one of our canonical keys; legacy
+    // free-text categories (from older scans) start unset so the user can pick one.
+    setCategory(isProductCategory(product.category) ? product.category : null);
+    setCategoryOpen(false);
     setQuantity(defaultQuantity ?? 1);
     setPrice(product.unit_price != null ? String(product.unit_price) : '');
   } else if (!visible && openedFor !== null) {
@@ -69,6 +81,9 @@ export function ProductConfirmSheet({
         name: name.trim(),
         brand: brand.trim() || null,
         package_unit: packageUnit.trim() || null,
+        // Fall back to the incoming value so a legacy/scan-derived category isn't
+        // wiped when the user leaves the dropdown untouched.
+        category: category ?? product.category,
         unit_price: unitPrice,
       },
       quantity,
@@ -144,6 +159,91 @@ export function ProductConfirmSheet({
           onChangeText={setPackageUnit}
           placeholder={t('productSheet.packageSizePlaceholder')}
         />
+
+        <View style={styles.field}>
+          <Text
+            style={[
+              styles.dropdownLabel,
+              { color: colors.text.secondary, fontWeight: typography.weight.semibold },
+            ]}
+          >
+            {t('categories.label')}
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setCategoryOpen((open) => !open)}
+            style={[
+              styles.dropdown,
+              {
+                backgroundColor: colors.bg.surface,
+                borderColor: colors.border.default,
+                borderRadius: radius.lg,
+              },
+            ]}
+          >
+            <Text
+              style={{
+                color: category ? colors.text.primary : colors.text.placeholder,
+                fontSize: 16,
+              }}
+            >
+              {category ? categoryLabel(category, t) : t('categories.placeholder')}
+            </Text>
+            <Ionicons
+              name={categoryOpen ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={colors.text.muted}
+            />
+          </TouchableOpacity>
+          {categoryOpen && (
+            <View
+              style={[
+                styles.dropdownList,
+                {
+                  backgroundColor: colors.bg.surface,
+                  borderColor: colors.border.default,
+                  borderRadius: radius.lg,
+                },
+              ]}
+            >
+              {PRODUCT_CATEGORIES.map((key, index) => {
+                const selected = key === category;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      setCategory(key);
+                      setCategoryOpen(false);
+                    }}
+                    style={[
+                      styles.dropdownOption,
+                      index === 0 && styles.dropdownOptionFirst,
+                      { borderTopColor: colors.border.subtle },
+                      selected && { backgroundColor: colors.primary.soft },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        color: selected ? colors.primary.base : colors.text.primary,
+                        fontWeight: selected
+                          ? typography.weight.semibold
+                          : typography.weight.regular,
+                        fontSize: 15,
+                      }}
+                    >
+                      {t(`categories.${key}`)}
+                    </Text>
+                    {selected && (
+                      <Ionicons name="checkmark" size={16} color={colors.primary.base} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
         <TextField
           containerStyle={styles.field}
           label={t('productSheet.price')}
@@ -210,6 +310,25 @@ const styles = StyleSheet.create({
   toggleBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
   toggleText: { fontSize: 14 },
   field: { marginTop: 12 },
+  dropdownLabel: { fontSize: 13, marginBottom: 6 },
+  dropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  dropdownList: { borderWidth: 1, marginTop: 6, overflow: 'hidden' },
+  dropdownOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  dropdownOptionFirst: { borderTopWidth: 0 },
   qtyLabel: { fontSize: 13, marginBottom: 6, marginTop: 12 },
   qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 4 },
   qtyBtn: {

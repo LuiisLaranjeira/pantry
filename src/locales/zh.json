@@ -117,6 +117,10 @@
     "emptySub": "点击 + 添加商品。",
     "addItem": "+ 添加商品",
     "editItem": "编辑商品",
+    "listName": "购物清单",
+    "renameList": "重命名列表",
+    "listNamePlaceholder": "例：每周采购",
+    "listN": "列表 {{n}}",
     "startList": "开始购物清单",
     "starting": "正在开始…",
     "pastLists": "过去的清单",
@@ -249,5 +253,27 @@
   },
   "searchBar": {
     "placeholder": "搜索储藏室…"
+  },
+  "notifications": {
+    "lowStockTitle": "库存不足",
+    "lowStockBody": "{{name}} 库存不足（剩余 {{qty}}）。",
+    "lowStockMultiTitle_one": "库存不足 — {{count}} 件商品",
+    "lowStockMultiTitle_other": "库存不足 — {{count}} 件商品"
+  },
+  "categories": {
+    "label": "类别",
+    "placeholder": "选择类别",
+    "vegetables": "蔬菜",
+    "fruits": "水果",
+    "dairy": "传统乳制品",
+    "plant_based": "植物基替代品",
+    "bakery": "烘焙与面包",
+    "meat_seafood": "肉类与海鲜",
+    "frozen": "冷冻食品",
+    "beverages": "饮料",
+    "pantry": "食品储藏",
+    "snacks": "零食",
+    "household": "家居用品",
+    "other": "其他"
   }
 }

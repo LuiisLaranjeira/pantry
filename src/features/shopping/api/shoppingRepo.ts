@@ -5,7 +5,7 @@ import type { ShoppingList, ShoppingListItem } from '@/shared/types/domain';
 const ITEM_SELECT =
   'id, list_id, product_id, name, quantity, unit_price, checked, product:products(brand, package_unit, category)';
 
-const LIST_COLUMNS = 'id, household_id, status, total_spent, created_at, completed_at';
+const LIST_COLUMNS = 'id, household_id, status, name, total_spent, created_at, completed_at';
 
 export interface NewShoppingItem {
   list_id: string;
@@ -49,6 +49,7 @@ export const shoppingRepo = {
         id: newId,
         household_id: householdId,
         status: 'active',
+        name: null,
         total_spent: null,
         created_at: new Date().toISOString(),
         completed_at: null,
@@ -153,10 +154,12 @@ export const shoppingRepo = {
   async completedLists(
     householdId: string,
     options?: { limit?: number },
-  ): Promise<{ id: string; total_spent: number | null; completed_at: string | null }[]> {
+  ): Promise<
+    { id: string; name: string | null; total_spent: number | null; completed_at: string | null }[]
+  > {
     let query = supabase
       .from('shopping_lists')
-      .select('id, completed_at, total_spent')
+      .select('id, name, completed_at, total_spent')
       .eq('household_id', householdId)
       .eq('status', 'completed')
       .order('completed_at', { ascending: false });
@@ -164,6 +167,11 @@ export const shoppingRepo = {
     const { data, error } = await query;
     if (error) throw mapSupabaseError(error, 'Could not load shopping history.');
     return data ?? [];
+  },
+
+  async updateListName(listId: string, name: string): Promise<void> {
+    const { error } = await supabase.from('shopping_lists').update({ name }).eq('id', listId);
+    if (error) throw mapSupabaseError(error, 'Could not rename shopping list.');
   },
 
   async itemsByListIds(listIds: string[]): Promise<

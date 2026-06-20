@@ -2,6 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import i18n from '@/shared/lib/i18n';
+
 const PREF_KEY = 'notifications_enabled';
 
 Notifications.setNotificationHandler({
@@ -48,8 +50,11 @@ export async function notifyLowStock(items: { name: string; quantity: number }[]
   if (items.length === 1) {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Low stock',
-        body: `${items[0].name} is running low (${items[0].quantity} left).`,
+        title: i18n.t('notifications.lowStockTitle'),
+        body: i18n.t('notifications.lowStockBody', {
+          name: items[0].name,
+          qty: items[0].quantity,
+        }),
       },
       trigger: null,
     });
@@ -57,7 +62,7 @@ export async function notifyLowStock(items: { name: string; quantity: number }[]
     const names = items.map((i) => i.name).join(', ');
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: `Low stock — ${items.length} items`,
+        title: i18n.t('notifications.lowStockMultiTitle', { count: items.length }),
         body: names,
       },
       trigger: null,

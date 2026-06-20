@@ -44,6 +44,7 @@ export interface ShoppingList {
   id: string;
   household_id: string;
   status: 'active' | 'completed';
+  name: string | null;
   total_spent: number | null;
   created_at: string;
   completed_at: string | null;

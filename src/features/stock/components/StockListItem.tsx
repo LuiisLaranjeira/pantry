@@ -21,11 +21,8 @@ export function StockListItem({ item, onIncrease, onDecrease, onLongPress }: Pro
   const stockStatus = item.quantity === 0 ? 'out' : isLow ? 'low' : 'ok';
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      onLongPress={onLongPress}
-      style={[styles.card, isLow && styles.cardLow]}
-    >
+    <TouchableOpacity activeOpacity={0.85} onLongPress={onLongPress} style={styles.card}>
+      {isLow && <View style={styles.lowAccent} />}
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>
           {item.product.name}
@@ -62,9 +59,17 @@ function makeStyles(
       padding: 16,
       flexDirection: 'row',
       alignItems: 'center',
+      overflow: 'hidden',
       ...elevation.card,
     },
-    cardLow: { borderLeftWidth: 3, borderLeftColor: colors.warning.base },
+    lowAccent: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 3,
+      backgroundColor: colors.warning.base,
+    },
     info: { flex: 1, marginRight: 12 },
     name: { fontSize: 15, fontWeight: '600', color: colors.text.primary },
     meta: { fontSize: 12, color: colors.text.muted, marginTop: 2 },

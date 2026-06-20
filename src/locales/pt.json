@@ -117,6 +117,10 @@
     "emptySub": "Toque em + para adicionar itens.",
     "addItem": "+ Adicionar item",
     "editItem": "Editar item",
+    "listName": "Lista de Compras",
+    "renameList": "Renomear lista",
+    "listNamePlaceholder": "ex: Compras semanais",
+    "listN": "Lista {{n}}",
     "startList": "Iniciar lista de compras",
     "starting": "A iniciar…",
     "pastLists": "Listas anteriores",
@@ -249,5 +253,27 @@
   },
   "searchBar": {
     "placeholder": "Pesquisar despensa…"
+  },
+  "notifications": {
+    "lowStockTitle": "Stock baixo",
+    "lowStockBody": "{{name}} está a acabar (restam {{qty}}).",
+    "lowStockMultiTitle_one": "Stock baixo — {{count}} item",
+    "lowStockMultiTitle_other": "Stock baixo — {{count}} itens"
+  },
+  "categories": {
+    "label": "Categoria",
+    "placeholder": "Selecione uma categoria",
+    "vegetables": "Legumes",
+    "fruits": "Frutas",
+    "dairy": "Lacticínios Tradicionais",
+    "plant_based": "Alternativas Vegetais",
+    "bakery": "Padaria e Pão",
+    "meat_seafood": "Carne e Peixe",
+    "frozen": "Congelados",
+    "beverages": "Bebidas",
+    "pantry": "Despensa",
+    "snacks": "Snacks",
+    "household": "Casa",
+    "other": "Outros"
   }
 }

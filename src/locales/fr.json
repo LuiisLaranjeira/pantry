@@ -117,6 +117,10 @@
     "emptySub": "Appuyez sur + pour ajouter des articles.",
     "addItem": "+ Ajouter un article",
     "editItem": "Modifier l'article",
+    "listName": "Liste de courses",
+    "renameList": "Renommer la liste",
+    "listNamePlaceholder": "ex. Courses de la semaine",
+    "listN": "Liste {{n}}",
     "startList": "Démarrer une liste de courses",
     "starting": "Démarrage…",
     "pastLists": "Listes passées",
@@ -249,5 +253,27 @@
   },
   "searchBar": {
     "placeholder": "Rechercher dans le garde-manger…"
+  },
+  "notifications": {
+    "lowStockTitle": "Stock bas",
+    "lowStockBody": "{{name}} est presque épuisé (il en reste {{qty}}).",
+    "lowStockMultiTitle_one": "Stock bas — {{count}} article",
+    "lowStockMultiTitle_other": "Stock bas — {{count}} articles"
+  },
+  "categories": {
+    "label": "Catégorie",
+    "placeholder": "Sélectionnez une catégorie",
+    "vegetables": "Légumes",
+    "fruits": "Fruits",
+    "dairy": "Produits laitiers traditionnels",
+    "plant_based": "Alternatives végétales",
+    "bakery": "Boulangerie et pain",
+    "meat_seafood": "Viande et poisson",
+    "frozen": "Surgelés",
+    "beverages": "Boissons",
+    "pantry": "Épicerie",
+    "snacks": "En-cas",
+    "household": "Maison",
+    "other": "Autres"
   }
 }

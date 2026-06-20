@@ -2,6 +2,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { TFunction } from 'i18next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppState } from '@/app/providers/AppStateProvider';
 import type { AppStackParamList, MainTabsParamList } from '@/app/navigation/types';
 import { CategorySectionHeader } from '@/features/shopping/components/CategorySectionHeader';
+import { ListNameSheet } from '@/features/shopping/components/ListNameSheet';
 import { ShoppingHeader } from '@/features/shopping/components/ShoppingHeader';
 import { ShoppingListItemRow } from '@/features/shopping/components/ShoppingListItemRow';
 import { ShoppingNoList } from '@/features/shopping/components/ShoppingNoList';
@@ -32,9 +34,11 @@ import { useShoppingItems } from '@/features/shopping/hooks/useShoppingItems';
 import { useShoppingListSync } from '@/features/shopping/hooks/useShoppingListSync';
 import { useStartList } from '@/features/shopping/hooks/useStartList';
 import { useToggleItemChecked } from '@/features/shopping/hooks/useToggleItemChecked';
+import { useUpdateListName } from '@/features/shopping/hooks/useUpdateListName';
 import { useUpdateShoppingItem } from '@/features/shopping/hooks/useUpdateShoppingItem';
 import { isAppError } from '@/shared/api/errors';
 import { ProductConfirmSheet, type Destination } from '@/shared/components/ProductConfirmSheet';
+import { categoryLabel, categoryOrder } from '@/shared/constants/categories';
 import { formatCurrency } from '@/shared/lib/format';
 import { Button, EmptyState, useTheme } from '@/shared/ui';
 import { EMPTY_PRODUCT } from '@/shared/types/domain';
@@ -45,30 +49,26 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<AppStackParamList>
 >;
 
-type Section = { title: string; data: ShoppingListItem[] };
+type Section = { key: string; title: string; data: ShoppingListItem[] };
 
-function groupSections(items: ShoppingListItem[], inCartLabel: string): Section[] {
+function groupSections(items: ShoppingListItem[], inCartLabel: string, t: TFunction): Section[] {
   const unchecked = items.filter((i) => !i.checked);
   const checked = items.filter((i) => i.checked);
 
   const byCategory = new Map<string, ShoppingListItem[]>();
   for (const item of unchecked) {
-    const key = item.product?.category ?? 'Other';
+    const key = item.product?.category || 'other';
     const bucket = byCategory.get(key) ?? [];
     bucket.push(item);
     byCategory.set(key, bucket);
   }
 
   const sections: Section[] = [...byCategory.keys()]
-    .sort((a, b) => {
-      if (a === 'Other') return 1;
-      if (b === 'Other') return -1;
-      return a.localeCompare(b);
-    })
-    .map((title) => ({ title, data: byCategory.get(title)! }));
+    .map((key) => ({ key, title: categoryLabel(key, t), data: byCategory.get(key)! }))
+    .sort((a, b) => categoryOrder(a.key) - categoryOrder(b.key) || a.title.localeCompare(b.title));
 
   if (checked.length > 0) {
-    sections.push({ title: inCartLabel, data: checked });
+    sections.push({ key: 'inCart', title: inCartLabel, data: checked });
   }
 
   return sections;
@@ -80,6 +80,7 @@ export function ShoppingScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [showAdd, setShowAdd] = useState(false);
+  const [showRename, setShowRename] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null);
 
   const activeList = useActiveList(householdId);
@@ -87,6 +88,7 @@ export function ShoppingScreen({ navigation }: Props) {
   const items = useShoppingItems(activeList.data?.id ?? null);
 
   const startList = useStartList(householdId);
+  const updateListName = useUpdateListName(householdId);
   const toggleChecked = useToggleItemChecked(activeList.data?.id ?? null);
   const deleteItem = useDeleteShoppingItem(activeList.data?.id ?? null);
   const updateItem = useUpdateShoppingItem(activeList.data?.id ?? null);
@@ -125,7 +127,7 @@ export function ShoppingScreen({ navigation }: Props) {
         .reduce((sum, i) => sum + (i.unit_price ?? 0) * i.quantity, 0),
     [checkedItems],
   );
-  const sections = useMemo(() => groupSections(itemList, t('shopping.inCart')), [itemList, t]);
+  const sections = useMemo(() => groupSections(itemList, t('shopping.inCart'), t), [itemList, t]);
 
   useEffect(() => {
     if (!activeList.data) {
@@ -279,9 +281,11 @@ export function ShoppingScreen({ navigation }: Props) {
       style={[styles.container, { backgroundColor: colors.bg.default }]}
     >
       <ShoppingHeader
+        listName={activeList.data?.name ?? null}
         checkedCount={checkedCount}
         isPending={confirmPurchase.isPending}
         onDeleteList={handleDeleteList}
+        onRenameList={() => setShowRename(true)}
         onScanReceipt={() => navigation.navigate('ReceiptScan')}
         onConfirmPurchase={handleConfirmPurchase}
       />
@@ -364,6 +368,18 @@ export function ShoppingScreen({ navigation }: Props) {
         defaultQuantity={editingItem?.quantity ?? 1}
         onConfirm={handleSaveEdit}
         onCancel={() => setEditingItem(null)}
+      />
+      <ListNameSheet
+        visible={showRename}
+        currentName={activeList.data?.name ?? null}
+        isSaving={updateListName.isPending}
+        onSave={(name) =>
+          updateListName.mutate(
+            { listId: activeList.data!.id, name },
+            { onSuccess: () => setShowRename(false) },
+          )
+        }
+        onClose={() => setShowRename(false)}
       />
     </SafeAreaView>
   );

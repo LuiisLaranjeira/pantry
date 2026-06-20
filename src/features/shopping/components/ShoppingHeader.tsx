@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -5,17 +6,21 @@ import { useTranslation } from 'react-i18next';
 import { IconButton, useTheme } from '@/shared/ui';
 
 interface Props {
+  listName: string | null;
   checkedCount: number;
   isPending: boolean;
   onDeleteList: () => void;
+  onRenameList: () => void;
   onScanReceipt: () => void;
   onConfirmPurchase: () => void;
 }
 
 export function ShoppingHeader({
+  listName,
   checkedCount,
   isPending,
   onDeleteList,
+  onRenameList,
   onScanReceipt,
   onConfirmPurchase,
 }: Props) {
@@ -31,7 +36,12 @@ export function ShoppingHeader({
         accessibilityLabel={t('shopping.deleteListLabel')}
         onPress={onDeleteList}
       />
-      <Text style={styles.title}>{t('shopping.title')}</Text>
+      <TouchableOpacity style={styles.titleArea} onPress={onRenameList} activeOpacity={0.7}>
+        <Text style={styles.title} numberOfLines={1}>
+          {listName ?? t('shopping.listName')}
+        </Text>
+        <Ionicons name="pencil-outline" size={13} color={colors.text.muted} style={styles.pencil} />
+      </TouchableOpacity>
       <View style={styles.rightRow}>
         <IconButton
           icon="receipt-outline"
@@ -68,13 +78,20 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border.subtle,
     },
-    title: {
+    titleArea: {
       flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
       marginLeft: 8,
+      gap: 4,
+    },
+    title: {
+      flexShrink: 1,
       fontSize: 18,
       fontWeight: '700',
       color: colors.text.primary,
     },
+    pencil: { marginTop: 1 },
     rightRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     confirmBtn: {
       backgroundColor: colors.primary.base,

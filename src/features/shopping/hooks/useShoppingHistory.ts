@@ -7,6 +7,7 @@ const LIMIT = 20;
 
 export interface HistoryRow {
   id: string;
+  name: string | null;
   total_spent: number | null;
   completed_at: string | null;
 }

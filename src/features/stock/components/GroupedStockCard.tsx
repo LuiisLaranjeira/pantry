@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
+import { categoryLabel } from '@/shared/constants/categories';
 import { useTheme } from '@/shared/ui';
 import type { GroupedStockItem } from '@/shared/types/domain';
 
@@ -19,16 +20,15 @@ export function GroupedStockCard({ group, onAdjust, onLongPress }: Props) {
   const isLow = group.quantity <= group.low_stock_threshold;
 
   return (
-    <TouchableOpacity
-      style={[styles.card, isLow && styles.cardLow]}
-      onLongPress={onLongPress}
-      activeOpacity={0.8}
-    >
+    <TouchableOpacity style={styles.card} onLongPress={onLongPress} activeOpacity={0.8}>
+      {isLow && <View style={styles.lowAccent} />}
       <View style={styles.info}>
         <Text style={styles.name}>{group.name}</Text>
         {(group.package_unit || group.category) && (
           <Text style={styles.meta}>
-            {[group.package_unit, group.category].filter(Boolean).join(' · ')}
+            {[group.package_unit, group.category ? categoryLabel(group.category, t) : null]
+              .filter(Boolean)
+              .join(' · ')}
           </Text>
         )}
       </View>
@@ -64,9 +64,17 @@ function makeStyles(
       paddingVertical: 12,
       flexDirection: 'row',
       alignItems: 'center',
+      overflow: 'hidden',
       ...elevation.card,
     },
-    cardLow: { borderLeftWidth: 3, borderLeftColor: colors.warning.base },
+    lowAccent: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 3,
+      backgroundColor: colors.warning.base,
+    },
     info: { flex: 1 },
     name: { fontSize: 15, fontWeight: '600', color: colors.text.primary },
     meta: { fontSize: 12, color: colors.text.muted, marginTop: 2 },

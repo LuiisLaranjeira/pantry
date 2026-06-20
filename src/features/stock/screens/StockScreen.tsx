@@ -37,6 +37,7 @@ import { useStockList } from '@/features/stock/hooks/useStockList';
 import { useUpdateStockThreshold } from '@/features/stock/hooks/useUpdateStockThreshold';
 import { isAppError } from '@/shared/api/errors';
 import { ProductConfirmSheet, type Destination } from '@/shared/components/ProductConfirmSheet';
+import { categoryLabel } from '@/shared/constants/categories';
 import { Button, EmptyState, useTheme } from '@/shared/ui';
 import { EMPTY_PRODUCT } from '@/shared/types/domain';
 import type { GroupedStockItem, PartialProduct, StockItem } from '@/shared/types/domain';
@@ -238,7 +239,8 @@ export function StockScreen({ navigation, route }: Props) {
   const filteredGrouped = query
     ? groupedItems.filter(
         (g) =>
-          g.name.toLowerCase().includes(query) || (g.category ?? '').toLowerCase().includes(query),
+          g.name.toLowerCase().includes(query) ||
+          (g.category ? categoryLabel(g.category, t).toLowerCase().includes(query) : false),
       )
     : groupedItems;
 

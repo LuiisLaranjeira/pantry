@@ -17,6 +17,7 @@ import { useTheme } from '@/shared/ui';
 
 interface List {
   id: string;
+  name?: string | null;
   completed_at: string | null;
   total_spent: number | null;
 }
@@ -32,6 +33,20 @@ export function ReceiptModal({ list, onClose }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
+  // A receipt reflects what was purchased, so only checked items belong here —
+  // a checked item still appears even when no price was recorded for it.
+  const receiptItems = useMemo(() => (items.data ?? []).filter((i) => i.checked), [items.data]);
+
+  // Prefer the stored total; fall back to summing the purchased items that have
+  // a price so a total still shows when total_spent was never stored.
+  const displayTotal = useMemo(() => {
+    if (list?.total_spent != null) return list.total_spent;
+    const derived = receiptItems
+      .filter((i) => i.unit_price != null)
+      .reduce((sum, i) => sum + (i.unit_price ?? 0) * i.quantity, 0);
+    return derived > 0 ? derived : null;
+  }, [list, receiptItems]);
+
   return (
     <Modal
       visible={list !== null}
@@ -42,7 +57,7 @@ export function ReceiptModal({ list, onClose }: Props) {
       <View style={styles.container}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>{t('shopping.receipt')}</Text>
+            <Text style={styles.title}>{list?.name ?? t('shopping.receipt')}</Text>
             {list?.completed_at && (
               <Text style={styles.date}>
                 {new Date(list.completed_at).toLocaleDateString('en-GB', {
@@ -62,7 +77,7 @@ export function ReceiptModal({ list, onClose }: Props) {
           <ActivityIndicator style={styles.loader} color={colors.primary.base} size="large" />
         ) : (
           <ScrollView contentContainerStyle={styles.body}>
-            {(items.data ?? []).map((item, index) => (
+            {receiptItems.map((item, index) => (
               <View key={item.id}>
                 {index > 0 && <View style={styles.divider} />}
                 <View style={styles.row}>
@@ -93,12 +108,12 @@ export function ReceiptModal({ list, onClose }: Props) {
               </View>
             ))}
 
-            {list?.total_spent != null && (
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>{t('shopping.receiptTotal')}</Text>
-                <Text style={styles.totalAmount}>{formatCurrency(list.total_spent)}</Text>
-              </View>
-            )}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>{t('shopping.receiptTotal')}</Text>
+              <Text style={displayTotal != null ? styles.totalAmount : styles.totalAmountEmpty}>
+                {displayTotal != null ? formatCurrency(displayTotal) : '—'}
+              </Text>
+            </View>
           </ScrollView>
         )}
       </View>
@@ -141,5 +156,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     totalLabel: { fontSize: 16, fontWeight: '700', color: colors.text.primary },
     totalAmount: { fontSize: 20, fontWeight: '800', color: colors.primary.base },
+    totalAmountEmpty: { fontSize: 20, fontWeight: '800', color: colors.text.muted },
   });
 }

@@ -117,6 +117,10 @@
     "emptySub": "Tippe auf +, um Artikel hinzuzufügen.",
     "addItem": "+ Artikel hinzufügen",
     "editItem": "Artikel bearbeiten",
+    "listName": "Einkaufsliste",
+    "renameList": "Liste umbenennen",
+    "listNamePlaceholder": "z.B. Wocheneinkauf",
+    "listN": "Liste {{n}}",
     "startList": "Einkaufsliste starten",
     "starting": "Wird gestartet…",
     "pastLists": "Vergangene Listen",
@@ -249,5 +253,27 @@
   },
   "searchBar": {
     "placeholder": "Speisekammer durchsuchen…"
+  },
+  "notifications": {
+    "lowStockTitle": "Niedriger Bestand",
+    "lowStockBody": "{{name}} wird knapp (noch {{qty}} übrig).",
+    "lowStockMultiTitle_one": "Niedriger Bestand — {{count}} Artikel",
+    "lowStockMultiTitle_other": "Niedriger Bestand — {{count}} Artikel"
+  },
+  "categories": {
+    "label": "Kategorie",
+    "placeholder": "Kategorie auswählen",
+    "vegetables": "Gemüse",
+    "fruits": "Obst",
+    "dairy": "Traditionelle Milchprodukte",
+    "plant_based": "Pflanzliche Alternativen",
+    "bakery": "Backwaren & Brot",
+    "meat_seafood": "Fleisch & Fisch",
+    "frozen": "Tiefkühlkost",
+    "beverages": "Getränke",
+    "pantry": "Vorratskammer",
+    "snacks": "Snacks",
+    "household": "Haushalt",
+    "other": "Sonstiges"
   }
 }

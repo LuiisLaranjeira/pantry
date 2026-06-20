@@ -117,6 +117,10 @@
     "emptySub": "Tap + to add items.",
     "addItem": "+ Add item",
     "editItem": "Edit item",
+    "listName": "Shopping List",
+    "renameList": "Rename list",
+    "listNamePlaceholder": "e.g. Weekly grocery run",
+    "listN": "List {{n}}",
     "startList": "Start shopping list",
     "starting": "Starting…",
     "pastLists": "Past lists",
@@ -249,5 +253,27 @@
   },
   "searchBar": {
     "placeholder": "Search pantry…"
+  },
+  "notifications": {
+    "lowStockTitle": "Low stock",
+    "lowStockBody": "{{name}} is running low ({{qty}} left).",
+    "lowStockMultiTitle_one": "Low stock — {{count}} item",
+    "lowStockMultiTitle_other": "Low stock — {{count}} items"
+  },
+  "categories": {
+    "label": "Category",
+    "placeholder": "Select a category",
+    "vegetables": "Vegetables",
+    "fruits": "Fruits",
+    "dairy": "Traditional Dairy",
+    "plant_based": "Plant-Based Alternatives",
+    "bakery": "Bakery & Bread",
+    "meat_seafood": "Meat & Seafood",
+    "frozen": "Frozen Foods",
+    "beverages": "Beverages",
+    "pantry": "Pantry Staples",
+    "snacks": "Snacks",
+    "household": "Household",
+    "other": "Other"
   }
 }
