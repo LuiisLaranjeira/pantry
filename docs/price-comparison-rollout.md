@@ -67,34 +67,41 @@ The scraper only targets `products` rows with real EAN barcodes.
 
 ---
 
-## Phase 3 — Run the scraper against the test project
-This is the real test — it tells us whether the Continente adapter works
-against the live site.
+## Phase 3 — Run the scraper via GitHub Actions (chosen path)
+Run the scraper in CI so the **service-role key stays in GitHub secrets** — never
+in chat or a local shell.
 
+- [ ] 🔑 **GitHub → Settings → Environments → `development`** → add secrets:
+  - `SUPABASE_URL` = `https://qijemggbboqzifoetguy.supabase.co`
+  - `SUPABASE_SERVICE_ROLE_KEY` = the test project's **`sb_secret_…`** key
+    (Supabase → Project Settings → API → service_role / secret key — **not** the
+    `sb_publishable_…` key)
+- [ ] **Actions → Scrape Prices → Run workflow → target: `development`.**
+- [ ] Open the run → **Summary** for the per-store table; check the step log for
+      `Loaded N active stores and M EAN products`.
+
+**Verify (Supabase SQL editor):**
+- [ ] `select * from store_prices;` has rows for the seeded barcodes.
+- [ ] `select * from scrape_runs order by id desc;` shows a summary row per store.
+- [ ] The `manual_*` product was not scraped (EAN filter).
+- [ ] The Pingo Doce stub (returns `null`) didn't abort the run.
+
+> ⚠️ GitHub Actions egress IPs are a common scraping block target. If Continente
+> shows `written=0`/errors while the run is otherwise green, that's a real finding
+> — iterate on `scraper/adapters/continente.ts` (selectors/endpoint) or note the
+> limitation. The adapter framework + DB wiring are still validated by the run.
+> Production secrets come later, only when you're ready for the weekly cron.
+
+---
+
+## Phase 4 — (Optional) run the scraper locally
+Only if you want to debug the adapter interactively; keeps the service-role key on
+your own machine instead of CI.
 ```bash
 cd scraper && npm ci
 SUPABASE_URL=<api-url> SUPABASE_SERVICE_ROLE_KEY=<service-role-key> npm start
 ```
-🔑 `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` from the test project.
-
-**Verify:**
-- [ ] `store_prices` has rows for the test barcodes.
-- [ ] `scrape_runs` has a summary row per store.
-- [ ] The `manual_*` product was skipped.
-- [ ] A failing/empty adapter (Pingo Doce stub returns `null`) doesn't abort the run.
-
-> ⚠️ Expect to iterate on `scraper/adapters/continente.ts`: retailer markup /
-> anti-bot can require selector or endpoint tuning. Fix it here, before merge.
-
----
-
-## Phase 4 — Test the GitHub workflow (manual dispatch)
-- [ ] 🔑 In **GitHub → Settings → Environments → `development`**, add:
-  - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (pointing at the test project for now)
-- [ ] Run **Actions → Scrape Prices → Run workflow → development**.
-- [ ] Confirm the job summary table and fresh rows in `store_prices`.
-
-> Production secrets come later, only when you're ready for the weekly cron.
+Same verification as Phase 3.
 
 ---
 
