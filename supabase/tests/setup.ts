@@ -1,4 +1,14 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import ws from 'ws';
+
+// Node < 22 has no global WebSocket, which supabase-js's realtime client needs
+// at construction time. Supply the `ws` implementation so createClient() works
+// on Node 20 (local dev) as well as Node 22+ (CI). The tests never use realtime,
+// but the client still constructs a RealtimeClient eagerly.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- ws is a valid
+// WebSocket impl; its types don't structurally match realtime-js's narrower
+// WebSocketLikeConstructor, so cast through any.
+const realtime = { transport: ws as any };
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -19,6 +29,7 @@ export const SERVICE_ROLE_KEY =
 
 export const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
+  realtime,
 });
 
 export interface TestUser {
@@ -52,6 +63,7 @@ export async function provisionTestUser(label: string): Promise<TestUser> {
 
   const client = createClient(SUPABASE_URL, ANON_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
+    realtime,
   });
   const { error: signInErr } = await client.auth.signInWithPassword({ email, password });
   if (signInErr) {
