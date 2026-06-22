@@ -275,5 +275,12 @@
     "snacks": "En-cas",
     "household": "Maison",
     "other": "Autres"
+  },
+  "prices": {
+    "comparison": "Comparaison des prix",
+    "cheapestAt": "Moins cher chez {{store}}",
+    "updated": "Mis à jour {{time}}",
+    "empty": "Pas encore de prix",
+    "viewProduct": "Voir le produit"
   }
 }

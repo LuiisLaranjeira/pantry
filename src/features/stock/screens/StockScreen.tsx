@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppState } from '@/app/providers/AppStateProvider';
 import type { AppStackParamList, MainTabsParamList } from '@/app/navigation/types';
 import { useHousehold } from '@/features/household/hooks/useHousehold';
+import { PriceCompareSheet } from '@/features/prices/components/PriceCompareSheet';
 import { useAddItemFromManual } from '@/features/shopping/hooks/useAddItemFromManual';
 import {
   useAddLowStockToList,
@@ -54,6 +55,7 @@ export function StockScreen({ navigation, route }: Props) {
   const [search, setSearch] = useState('');
   const [editingItem, setEditingItem] = useState<StockItem | null>(null);
   const [editingGroup, setEditingGroup] = useState<GroupedStockItem | null>(null);
+  const [comparingProductId, setComparingProductId] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
@@ -358,6 +360,11 @@ export function StockScreen({ navigation, route }: Props) {
           )
         }
         onDelete={() => onDeleteItem(editingItem!)}
+        onCompare={() => {
+          const id = editingItem?.product.id ?? null;
+          setEditingItem(null);
+          setComparingProductId(id);
+        }}
         onClose={() => setEditingItem(null)}
       />
 
@@ -373,7 +380,18 @@ export function StockScreen({ navigation, route }: Props) {
           )
         }
         onDelete={() => onDeleteGroup(editingGroup!)}
+        onCompare={() => {
+          const id = editingGroup ? pickHighestQtyMember(editingGroup.members).product.id : null;
+          setEditingGroup(null);
+          setComparingProductId(id);
+        }}
         onClose={() => setEditingGroup(null)}
+      />
+
+      <PriceCompareSheet
+        productId={comparingProductId}
+        visible={comparingProductId !== null}
+        onClose={() => setComparingProductId(null)}
       />
     </SafeAreaView>
   );

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +13,7 @@ interface Props {
   onDelete: () => void;
   onClose: () => void;
   isSaving: boolean;
+  onCompare?: () => void;
 }
 
 export function StockItemEditSheet({
@@ -22,6 +24,7 @@ export function StockItemEditSheet({
   onDelete,
   onClose,
   isSaving,
+  onCompare,
 }: Props) {
   const { t } = useTranslation();
   const { colors, typography } = useTheme();
@@ -75,6 +78,15 @@ export function StockItemEditSheet({
       </View>
       <Text style={[styles.hint, { color: colors.text.muted }]}>{t('stock.thresholdHint')}</Text>
 
+      {onCompare && (
+        <TouchableOpacity style={styles.compareBtn} onPress={onCompare}>
+          <Ionicons name="pricetags-outline" size={18} color={colors.primary.base} />
+          <Text style={[styles.compareText, { color: colors.primary.base }]}>
+            {t('prices.comparison')}
+          </Text>
+        </TouchableOpacity>
+      )}
+
       <Button
         label={t('common.save')}
         onPress={() => onSave(threshold)}
@@ -119,6 +131,15 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       marginTop: 8,
       marginBottom: 24,
     },
+    compareBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 12,
+      marginBottom: 12,
+    },
+    compareText: { fontSize: 15, fontWeight: '600' },
     saveBtn: { marginBottom: 12 },
     deleteBtn: {
       alignItems: 'center',

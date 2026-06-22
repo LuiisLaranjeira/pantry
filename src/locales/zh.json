@@ -275,5 +275,12 @@
     "snacks": "零食",
     "household": "家居用品",
     "other": "其他"
+  },
+  "prices": {
+    "comparison": "价格比较",
+    "cheapestAt": "{{store}} 最便宜",
+    "updated": "{{time}}更新",
+    "empty": "暂无价格",
+    "viewProduct": "查看商品"
   }
 }

@@ -1,0 +1,44 @@
+name: Scrape Prices
+
+on:
+  schedule:
+    # Weekly, Mondays 06:00 UTC.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Which Supabase project to write to'
+        type: choice
+        default: development
+        options:
+          - development
+          - production
+
+concurrency:
+  group: scrape-prices
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    # Scheduled runs hit production; manual runs default to development so the
+    # scraper can be exercised safely. Secrets (SUPABASE_URL,
+    # SUPABASE_SERVICE_ROLE_KEY) are resolved per GitHub Environment.
+    environment: ${{ github.event_name == 'schedule' && 'production' || inputs.target }}
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install scraper deps
+        working-directory: scraper
+        run: npm ci
+
+      - name: Run scrape
+        working-directory: scraper
+        run: npm start

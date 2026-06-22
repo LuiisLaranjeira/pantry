@@ -36,6 +36,8 @@ import { useStartList } from '@/features/shopping/hooks/useStartList';
 import { useToggleItemChecked } from '@/features/shopping/hooks/useToggleItemChecked';
 import { useUpdateListName } from '@/features/shopping/hooks/useUpdateListName';
 import { useUpdateShoppingItem } from '@/features/shopping/hooks/useUpdateShoppingItem';
+import { PriceCompareSheet } from '@/features/prices/components/PriceCompareSheet';
+import { useCheapestPrices } from '@/features/prices/hooks/useCheapestPrices';
 import { isAppError } from '@/shared/api/errors';
 import { ProductConfirmSheet, type Destination } from '@/shared/components/ProductConfirmSheet';
 import { categoryLabel, categoryOrder } from '@/shared/constants/categories';
@@ -82,6 +84,7 @@ export function ShoppingScreen({ navigation }: Props) {
   const [showAdd, setShowAdd] = useState(false);
   const [showRename, setShowRename] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null);
+  const [comparingProductId, setComparingProductId] = useState<string | null>(null);
 
   const activeList = useActiveList(householdId);
   const history = useShoppingHistory(householdId);
@@ -117,6 +120,11 @@ export function ShoppingScreen({ navigation }: Props) {
   );
 
   const itemList = useMemo(() => items.data ?? [], [items.data]);
+  const productIds = useMemo(
+    () => [...new Set(itemList.map((i) => i.product_id).filter((id): id is string => !!id))],
+    [itemList],
+  );
+  const cheapestPrices = useCheapestPrices(productIds);
   const checkedItems = useMemo(() => itemList.filter((i) => i.checked), [itemList]);
   const checkedCount = checkedItems.length;
   const uncheckedCount = itemList.length - checkedCount;
@@ -322,6 +330,8 @@ export function ShoppingScreen({ navigation }: Props) {
               onToggleCheck={() => handleToggle(item)}
               onEdit={() => setEditingItem(item)}
               onDelete={() => handleDelete(item)}
+              cheapest={item.product_id ? cheapestPrices.data?.[item.product_id] : undefined}
+              onCompare={item.product_id ? () => setComparingProductId(item.product_id) : undefined}
             />
           )}
           ListEmptyComponent={
@@ -380,6 +390,11 @@ export function ShoppingScreen({ navigation }: Props) {
           )
         }
         onClose={() => setShowRename(false)}
+      />
+      <PriceCompareSheet
+        productId={comparingProductId}
+        visible={comparingProductId !== null}
+        onClose={() => setComparingProductId(null)}
       />
     </SafeAreaView>
   );
