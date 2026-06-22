@@ -1,14 +1,25 @@
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { shoppingRepo } from '@/features/shopping/api/shoppingRepo';
 import { AppError } from '@/shared/api/errors';
-import { toCSV } from '@/shared/lib/format';
+import { UTF8_BOM, toCSV } from '@/shared/lib/format';
 
-const HEADER = ['Date', 'Item', 'Qty', 'Unit Price', 'Line Total', 'Purchased', 'List Total'];
+const HEADER = [
+  'Date',
+  'List',
+  'Item',
+  'Qty',
+  'Unit Price (€)',
+  'Line Total (€)',
+  'Purchased',
+  'List Total (€)',
+];
 
 export function useExportHistory(householdId: string | null) {
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: async () => {
       if (!householdId) throw new Error('No household.');
@@ -35,26 +46,41 @@ export function useExportHistory(householdId: string | null) {
         itemsByList.set(item.list_id, bucket);
       }
 
+      // Lists come ordered by completed_at desc, so same-day lists are adjacent.
+      // Number unnamed lists within each day ("List 1", "List 2", ...) so every
+      // item can be traced back to its list and day.
       const rows: (string | number | null)[][] = [HEADER];
+      let lastDateKey = '';
+      let dayCount = 0;
       for (const list of lists) {
+        const dateKey = list.completed_at?.slice(0, 10) ?? '';
+        if (dateKey !== lastDateKey) {
+          lastDateKey = dateKey;
+          dayCount = 0;
+        }
+        dayCount += 1;
+
         const date = list.completed_at
           ? new Date(list.completed_at).toLocaleDateString('en-GB')
           : '';
-        const listItems = itemsByList.get(list.id) ?? [];
-        for (const item of listItems) {
+        const listLabel = list.name?.trim() || t('shopping.listN', { n: dayCount });
+        const listTotal = list.total_spent != null ? list.total_spent.toFixed(2) : '';
+
+        for (const item of itemsByList.get(list.id) ?? []) {
           rows.push([
             date,
+            listLabel,
             item.name,
             item.quantity,
-            item.unit_price ?? '',
+            item.unit_price != null ? item.unit_price.toFixed(2) : '',
             item.unit_price != null ? (item.unit_price * item.quantity).toFixed(2) : '',
             item.checked ? 'Yes' : 'No',
-            list.total_spent != null ? list.total_spent.toFixed(2) : '',
+            listTotal,
           ]);
         }
       }
 
-      const csv = toCSV(rows);
+      const csv = UTF8_BOM + toCSV(rows);
       const file = new File(Paths.cache, 'shopping_history.csv');
       file.write(csv);
       await Sharing.shareAsync(file.uri, {
