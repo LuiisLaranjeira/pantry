@@ -43,6 +43,10 @@
             "module": "CommonJS",
             "esModuleInterop": true,
             "strict": true,
+            "types": [
+              "jest",
+              "node"
+            ],
             "baseUrl": ".",
             "paths": {
               "@/*": [
