@@ -4,6 +4,9 @@ module.exports = {
   rootDir: '.',
   testMatch: ['<rootDir>/supabase/tests/**/*.test.ts'],
   testTimeout: 30_000,
+  // Surface per-test failures as GitHub Actions annotations (readable via API
+  // even when raw log download is restricted).
+  reporters: ['default', 'github-actions'],
   transform: {
     '^.+\\.tsx?$': [
       'ts-jest',
