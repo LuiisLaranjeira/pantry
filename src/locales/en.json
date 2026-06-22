@@ -275,5 +275,12 @@
     "snacks": "Snacks",
     "household": "Household",
     "other": "Other"
+  },
+  "prices": {
+    "comparison": "Price comparison",
+    "cheapestAt": "Cheapest at {{store}}",
+    "updated": "Updated {{time}}",
+    "empty": "No prices yet",
+    "viewProduct": "View product"
   }
 }

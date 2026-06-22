@@ -60,3 +60,35 @@ export interface ShoppingListItem {
   checked: boolean;
   product?: { brand: string | null; package_unit: string | null; category: string | null } | null;
 }
+
+export interface Store {
+  id: string;
+  slug: string;
+  name: string;
+  country: string;
+  website: string | null;
+  active: boolean;
+}
+
+export interface StorePrice {
+  id: string;
+  store_id: string;
+  product_id: string;
+  barcode: string;
+  price: number;
+  currency: string;
+  in_stock: boolean | null;
+  url: string | null;
+  scraped_at: string;
+}
+
+/** A store price joined to its store, as returned by the comparison query. */
+export interface StorePriceWithStore extends StorePrice {
+  store: Pick<Store, 'name' | 'slug' | 'website'>;
+}
+
+/** The cheapest store + price for a product, used by shopping-list badges. */
+export interface CheapestPrice {
+  store: string;
+  price: number;
+}

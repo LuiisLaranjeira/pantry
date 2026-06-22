@@ -5,16 +5,25 @@ import { useTranslation } from 'react-i18next';
 
 import { formatCurrency } from '@/shared/lib/format';
 import { useTheme } from '@/shared/ui';
-import type { ShoppingListItem } from '@/shared/types/domain';
+import type { CheapestPrice, ShoppingListItem } from '@/shared/types/domain';
 
 interface Props {
   item: ShoppingListItem;
   onToggleCheck: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  cheapest?: CheapestPrice;
+  onCompare?: () => void;
 }
 
-export function ShoppingListItemRow({ item, onToggleCheck, onEdit, onDelete }: Props) {
+export function ShoppingListItemRow({
+  item,
+  onToggleCheck,
+  onEdit,
+  onDelete,
+  cheapest,
+  onCompare,
+}: Props) {
   const { t } = useTranslation();
   const { colors, elevation } = useTheme();
   const styles = useMemo(() => makeStyles(colors, elevation), [colors, elevation]);
@@ -39,6 +48,14 @@ export function ShoppingListItemRow({ item, onToggleCheck, onEdit, onDelete }: P
             ? t('shopping.qtyEach', { qty: item.quantity, price: formatCurrency(item.unit_price) })
             : t('shopping.qty', { qty: item.quantity })}
         </Text>
+        {cheapest && (
+          <TouchableOpacity style={styles.cheapestBadge} onPress={onCompare} activeOpacity={0.7}>
+            <Ionicons name="pricetag" size={11} color={colors.primary.base} />
+            <Text style={styles.cheapestText} numberOfLines={1}>
+              {t('prices.cheapestAt', { store: cheapest.store })} · {formatCurrency(cheapest.price)}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
       {item.unit_price != null && (
         <Text style={styles.itemTotal}>{formatCurrency(item.unit_price * item.quantity)}</Text>
@@ -84,6 +101,18 @@ function makeStyles(
     itemName: { fontSize: 15, fontWeight: '600', color: colors.text.primary },
     itemNameChecked: { textDecorationLine: 'line-through' },
     itemMeta: { fontSize: 12, color: colors.text.muted, marginTop: 2 },
+    cheapestBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      gap: 4,
+      marginTop: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 6,
+      backgroundColor: colors.primary.soft,
+    },
+    cheapestText: { fontSize: 11, fontWeight: '600', color: colors.primary.base },
     itemTotal: {
       fontSize: 14,
       fontWeight: '700',

@@ -275,5 +275,12 @@
     "snacks": "Snacks",
     "household": "Haushalt",
     "other": "Sonstiges"
+  },
+  "prices": {
+    "comparison": "Preisvergleich",
+    "cheapestAt": "Am günstigsten bei {{store}}",
+    "updated": "Aktualisiert {{time}}",
+    "empty": "Noch keine Preise",
+    "viewProduct": "Produkt ansehen"
   }
 }

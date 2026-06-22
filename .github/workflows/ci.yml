@@ -52,6 +52,17 @@ jobs:
         with:
           version: latest
 
+      # Base tables (households, products, …) live in supabase/schema.sql, which
+      # `supabase start` does not apply — only supabase/migrations/* run, and the
+      # incremental migrations assume the base schema already exists. Stage
+      # schema.sql as the earliest-sorting migration so the local CI database
+      # builds from scratch and the existing migrations replay cleanly on top.
+      # This file is generated on the runner only and is NOT committed (see
+      # .gitignore), so the deployed migration set / `supabase db push` is
+      # unchanged.
+      - name: Stage base schema as a local-only first migration (CI only)
+        run: cp supabase/schema.sql "supabase/migrations/20200101000000_ci_baseline.sql"
+
       - name: Start local Supabase
         run: supabase start
 

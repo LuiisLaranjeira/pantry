@@ -275,5 +275,12 @@
     "snacks": "Aperitivos",
     "household": "Hogar",
     "other": "Otros"
+  },
+  "prices": {
+    "comparison": "Comparación de precios",
+    "cheapestAt": "Más barato en {{store}}",
+    "updated": "Actualizado {{time}}",
+    "empty": "Aún no hay precios",
+    "viewProduct": "Ver producto"
   }
 }

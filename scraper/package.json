@@ -1,0 +1,20 @@
+{
+  "name": "pantry-scraper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Weekly multi-store price scraper. Runs as a GitHub Actions cron, writes per-store prices to Supabase with the service-role key. Standalone from the Expo app so nothing lands in the RN bundle.",
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.0",
+    "cheerio": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.0"
+  }
+}
